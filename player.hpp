@@ -89,6 +89,8 @@ public:
 	
 private:
 
+	
+
 	struct Impl;
 	Impl* pimpl;
 		
