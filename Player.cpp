@@ -2,7 +2,7 @@
 
 class Player{
     public:
-        enum player::piece {x, o, X, O, e};
+        enum piece {x, o, X, O, e};
 
         Player(int player_nr) {
             if (player_nr != 0 && player_nr != 1)
