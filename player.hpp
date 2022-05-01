@@ -43,16 +43,16 @@ public:
 	 * an array of boards is good only if you re-allocate using a doubling technique. 
 	 * Better to use a list of boards.  
 	 */
-	void load_board(const string& filename);
+	void load_board(const std::string& filename);
 
 	/*
 	 * save the history_offset-th board (counting from most to least recent) to file
 	 * (if history_offset = 0, then the board is the most recent one)
 	 */
-	void store_board(const string& filename, int history_offset = 0) const;
+	void store_board(const std::string& filename, int history_offset = 0) const;
 	
 	//create and store an initial board to file
-	void init_board(const string& filename) const;
+	void init_board(const std::string& filename) const;
 	
 	/* 
 	 * make a move starting from the most recent board in the history.
@@ -89,9 +89,16 @@ public:
 	
 private:
 
-	
+	// the player number
+	int player_nr;
 
-	struct Impl;
-	Impl* pimpl;
-		
+	struct Impl{
+		Impl* next;
+		Impl* prev;
+		piece board[8][8];
+	};
+
+	typedef Impl* pImpl;
+
+	pImpl memory;
 };
