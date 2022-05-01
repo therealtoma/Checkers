@@ -9,8 +9,8 @@ Player::Player(int player_nr) {
     this->player_nr = player_nr; // sets the player number
 
     memory = new Impl; // initializes the memory
-    memory->next = nullptr; // on the first call, the next pointer is nullptr
-    memory->prev = nullptr; // on the first call, the prev pointer is nullptr
+    memory->next = nullptr; // sets the next pointer to nullptr
+    memory->prev = nullptr; // sets the prev pointer to nullptr
 
     /* initializes the starting board (in the stack)*/
     // first row
@@ -111,10 +111,43 @@ Player::Player(const Player& copy){
 
     // sets the player number
     this->player_nr = copy.player_nr;
-
+    this->memory = new Impl; // initializes the memory
     //sets the board
-    
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            this->memory->board[i][j] = copy.memory->board[i][j];
+        }
+    }
+
+    /* sets the next and prev pointers */
+    pImpl copyNext = copy.memory->next;
+    pImpl startThis = this->memory->next;
+
+    // to complete
+    while(copyNext){
+        startThis->next = new Impl;
+        startThis->next->prev = startThis;
+        startThis = startThis->next;
+        copyNext = copyNext->next;
+    }
+
+    // sets the prev pointer
+    pImpl copyPrev = copy.memory->prev;
+    pImpl startPrev = this->memory->prev;
+
+    // to complete
+    while(copyPrev){
+        startPrev->prev = new Impl;
+        startPrev->prev->next = startPrev;
+        startPrev = startPrev->prev;
+        copyPrev = copyPrev->prev;
+    }
+
+    std::cout << "copy constructor called" << std::endl;
+
+
 }
+
 
 Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
     std::cout << "operator called" << std::endl;
