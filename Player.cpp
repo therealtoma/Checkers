@@ -1,7 +1,5 @@
 #include "player.hpp"
 
-enum piece {x, o, X, O, e};
-
 Player::Player(int player_nr) {
 
     //checks if player number is valid otherwise throws an exception
@@ -14,7 +12,7 @@ Player::Player(int player_nr) {
     memory->next = nullptr; // on the first call, the next pointer is nullptr
     memory->prev = nullptr; // on the first call, the prev pointer is nullptr
 
-    /* creates the starting board */
+    /* initializes the starting board (in the stack)*/
     // first row
     memory->board[0][0] = e;
     memory->board[0][1] = x;
@@ -95,37 +93,77 @@ Player::Player(int player_nr) {
     memory->board[7][6] = x;
     memory->board[7][7] = e;
 
-    std::cout << "Player " << player_nr << " created!\n";
+    std::cout << "Player "<< player_nr <<" created!" << std::endl;
+
+
 } // constructor
 
-/*
+// destructor
 Player::~Player(){
+    delete memory;
+    std::cout << "destructor called" << std::endl;
 }
-Player::Player(const Player&){
+
+
+// copy constructor
+Player::Player(const Player& copy){
+
+
+    // sets the player number
+    this->player_nr = copy.player_nr;
+
+    //sets the board
+    
 }
-Player::piece Player::operator()(int r, int c, int history_offset = 0) const{
+
+Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
+    std::cout << "operator called" << std::endl;
+    return memory->board[0][0];
 }
-void Player::load_board(const std::string& filename){}
-void Player::store_board(const std::string& filename, int history_offset = 0) const{}
-void Player::init_board(const std::string& filename) const{}
-void Player::move(){}
-bool Player::valid_move() const{}
-void Player::pop(){}
-bool Player::wins(int player_nr) const{}
-bool Player::wins() const{}
-bool Player::loses(int player_nr) const{}
-bool Player::loses() const{}
-int Player::recurrence() const{}
-*/
-int player_nr;
+void Player::load_board(const std::string& filename){
+    std::cout << "load_board called" << std::endl;
+}
+void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
+    std::cout << "store_board called" << std::endl;
+}
+void Player::init_board(const std::string& filename) const{
+    std::cout << "init_board called" << std::endl;
+}
+void Player::move(){
+    std::cout << "move called" << std::endl;
+}
+bool Player::valid_move() const{
+    std::cout << "valid_move called" << std::endl;
+    return true;
+}
+void Player::pop(){
+    std::cout << "pop called" << std::endl;
+}
+bool Player::wins(int player_nr) const{
+    std::cout << "wins called" << std::endl;
+    return true;
+}
+bool Player::wins() const{
+    std::cout << "wins called" << std::endl;
+    return true;
+}
+bool Player::loses(int player_nr) const{
+    std::cout << "loses called" << std::endl;
+    return true;
+}
+bool Player::loses() const{
+    std::cout << "loses called" << std::endl;
+    return true;
+}
+int Player::recurrence() const{
+    std::cout << "recurrence called" << std::endl;
+    return 0;
+}
 
-struct Impl{
-    Impl* next;
-    Impl* prev;
+int main(){
 
-    Player::piece board[8][8];
-};
+    Player p1(1);
+    Player p2(p1);
 
-typedef Impl* pImpl;
-
-pImpl memory; // a pointer to the latest board
+    return 0;
+}
