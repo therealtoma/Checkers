@@ -106,7 +106,6 @@ Player::Player(const Player& copy){
     this->board_nr = copy.board_nr;
     // sets the player number
     this->player_nr = copy.player_nr;
-    delete this->memory; // deletes the current memory
     this->memory = new Impl; // initializes the memory
 
 
@@ -211,6 +210,7 @@ int main(){
 
     Player p1(1);
     Player p2(p1); // test the copy constructor
+    Player::piece pedina = p2(0,0, 100); // test the operator()
 
     return 0;
 }
