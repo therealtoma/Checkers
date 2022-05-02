@@ -196,7 +196,7 @@ int Player::recurrence() const{
 int main(){
 
     Player p1(1);
-    Player p2(p1);
+    Player p2(p1); // test the copy constructor
 
     return 0;
 }
