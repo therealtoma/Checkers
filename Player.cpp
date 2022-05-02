@@ -102,16 +102,13 @@ Player::~Player(){
 
 // copy constructor
 Player::Player(const Player& copy){
+    // sets the board number
+    this->board_nr = copy.board_nr;
     // sets the player number
     this->player_nr = copy.player_nr;
     delete this->memory; // deletes the current memory
     this->memory = new Impl; // initializes the memory
-    //sets the board
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            this->memory->board[i][j] = copy.memory->board[i][j];
-        }
-    }
+
 
     /* sets the next and prev pointers */
     pImpl copyNext = copy.memory->next;
@@ -120,6 +117,12 @@ Player::Player(const Player& copy){
     // to complete
     while(copyNext){
         startThis->next = new Impl;
+        //sets the board
+        for(int i = 0; i < 8; i++){
+            for(int j = 0; j < 8; j++){
+                startThis->board[i][j] = copyNext->board[i][j];
+            }
+        }
         startThis->next->prev = startThis;
         startThis = startThis->next;
         copyNext = copyNext->next;
@@ -140,9 +143,30 @@ Player::Player(const Player& copy){
 
 
 Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
-    std::cout << "operator called" << std::endl;
+    if(r < 0 || r > 7 || c < 0 || c > 7)
+        throw player_exception{player_exception::index_out_of_bounds, "coordinates not valid"};
+
+    if(history_offset < 0 || history_offset > this->board_nr)
+        throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
+
+    // sets a temporary board to use in the loop
+    pImpl tempBoard = this->memory;
+    // loops the boards
+    while(history_offset >= 0){
+        if(history_offset == 0)
+            return this->memory->board[r][c]; // returns the history_offsetTH piece in position r, c
+        tempBoard = tempBoard->next;
+        history_offset--;
+    }
+    std::cout << "operator() called " << std::endl;
+    return e; // used as escape value
 
 }
+/*
+Player& operator=(const Player&){
+    std::cout << "operator= called" << std::endl;
+}
+ */
 void Player::load_board(const std::string& filename){
     std::cout << "load_board called" << std::endl;
 }
