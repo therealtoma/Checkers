@@ -89,8 +89,8 @@ public:
 	
 private:
 
-	// the player number
-	int player_nr;
+	int player_nr; // the player number
+    int board_nr; // the number of boards
 
 	struct Impl{
 		Impl* next;

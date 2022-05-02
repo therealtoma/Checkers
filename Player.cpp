@@ -5,7 +5,7 @@ Player::Player(int player_nr) {
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 0 && player_nr != 1)
         throw player_exception{player_exception::index_out_of_bounds, "The player can only be 0 or 1"};
-
+    this->board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
     memory = new Impl; // initializes the memory
@@ -92,25 +92,19 @@ Player::Player(int player_nr) {
     memory->board[7][5] = e;
     memory->board[7][6] = x;
     memory->board[7][7] = e;
-
-    std::cout << "Player "<< player_nr <<" created!" << std::endl;
-
-
 } // constructor
 
 // destructor
 Player::~Player(){
     delete memory;
-    std::cout << "destructor called" << std::endl;
 }
 
 
 // copy constructor
 Player::Player(const Player& copy){
-
-
     // sets the player number
     this->player_nr = copy.player_nr;
+    delete this->memory; // deletes the current memory
     this->memory = new Impl; // initializes the memory
     //sets the board
     for(int i = 0; i < 8; i++){
@@ -142,16 +136,12 @@ Player::Player(const Player& copy){
         startPrev = startPrev->prev;
         copyPrev = copyPrev->prev;
     }
-
-    std::cout << "copy constructor called" << std::endl;
-
-
 }
 
 
 Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
     std::cout << "operator called" << std::endl;
-    return memory->board[0][0];
+
 }
 void Player::load_board(const std::string& filename){
     std::cout << "load_board called" << std::endl;
