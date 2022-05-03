@@ -5,6 +5,7 @@ Player::Player(int player_nr) {
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 0 && player_nr != 1)
         throw player_exception{player_exception::index_out_of_bounds, "The player can only be 0 or 1"};
+
     this->board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
@@ -113,7 +114,6 @@ Player::Player(const Player& copy){
     pImpl copyNext = copy.memory->next;
     pImpl startThis = this->memory->next;
 
-    // to complete
     while(copyNext){
         startThis->next = new Impl;
         //sets the board
@@ -167,7 +167,22 @@ Player& operator=(const Player&){
 }
  */
 void Player::load_board(const std::string& filename){
-    std::cout << "load_board called" << std::endl;
+    std::ifstream file;
+    file.open("../" + filename);
+    std::string line;
+    if(!file.is_open())
+        throw player_exception{player_exception::missing_file, "the file is missing"};
+
+    // returns 0 while the file end is not reached
+    while(!file.eof()){
+        // gets the line
+        file >> line;
+        std::cout << line << std::endl;
+        std::cout << "file is open" << std::endl;
+    }
+
+    file.close();
+
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
     std::cout << "store_board called" << std::endl;
@@ -210,8 +225,12 @@ int main(){
 
     Player p1(1);
     Player p2(p1); // test the copy constructor
+<<<<<<< HEAD
     Player::piece pedina = p2(0,0, 100); // test the operator()
 
 
+=======
+    p2.load_board("board.txt");
+>>>>>>> 5
     return 0;
 }
