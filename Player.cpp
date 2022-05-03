@@ -97,7 +97,12 @@ Player::Player(int player_nr) {
 
 // destructor
 Player::~Player(){
-    delete memory;
+    while(memory != nullptr){
+        delete memory->prev;
+        memory = memory->next;
+        delete memory->prev;
+        std::cout << "delete" << std::endl;
+    }
 }
 
 
@@ -225,12 +230,5 @@ int main(){
 
     Player p1(1);
     Player p2(p1); // test the copy constructor
-<<<<<<< HEAD
-    Player::piece pedina = p2(0,0, 100); // test the operator()
-
-
-=======
-    p2.load_board("board.txt");
->>>>>>> 5
     return 0;
 }
