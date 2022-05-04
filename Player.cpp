@@ -97,11 +97,10 @@ Player::Player(int player_nr) {
 
 // destructor
 Player::~Player(){
-    while(memory != nullptr){
-        delete memory->prev;
+    while(memory){
+        Impl* temp = memory;
         memory = memory->next;
-        delete memory->prev;
-        std::cout << "delete" << std::endl;
+        delete temp;
     }
 }
 
@@ -112,7 +111,7 @@ Player::Player(const Player& copy){
     this->board_nr = copy.board_nr;
     // sets the player number
     this->player_nr = copy.player_nr;
-    this->memory = new Impl; // initializes the memory
+    this->memory = new Impl{nullptr, nullptr}; // initializes the memory
 
 
     /* sets the next and prev pointers */
