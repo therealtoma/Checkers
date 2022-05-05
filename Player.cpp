@@ -93,6 +93,8 @@ Player::Player(int player_nr) {
     memory->board[7][5] = e;
     memory->board[7][6] = o;
     memory->board[7][7] = e;
+
+    std::cout << "costruttore chiamato" << std::endl;
 } // constructor
 
 // destructor
@@ -102,46 +104,33 @@ Player::~Player(){
         memory = memory->next;
         delete temp;
     }
+    std::cout << "distruttore chiamato" << std::endl;
 }
 
 
 // copy constructor
 Player::Player(const Player& copy){
-    // sets the board number
-    this->board_nr = copy.board_nr;
-    // sets the player number
     this->player_nr = copy.player_nr;
-    this->memory = new Impl{nullptr, nullptr}; // initializes the memory
+    this->board_nr = copy.board_nr;
 
+    // allocates the memory of this object
+    Impl* copyBoard = copy.memory;
+    while(copyBoard){
+        this->memory = new Impl;
+        this->memory->next = copyBoard->next;
+        this->memory->prev = copyBoard->prev;
 
-    /* sets the next and prev pointers */
-    pImpl copyNext = copy.memory->next;
-    pImpl startThis = this->memory->next;
-
-    while(copyNext){
-        startThis->next = new Impl;
-        //sets the board
+        // assigning the board
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                startThis->board[i][j] = copyNext->board[i][j];
+                this->memory->board[i][j] = copyBoard->board[i][j];
             }
         }
-        startThis->next->prev = startThis;
-        startThis = startThis->next;
-        copyNext = copyNext->next;
-    }
 
-    // sets the prev pointer
-    pImpl copyPrev = copy.memory->prev;
-    pImpl startPrev = this->memory->prev;
-
-    // to complete
-    while(copyPrev){
-        startPrev->prev = new Impl;
-        startPrev->prev->next = startPrev;
-        startPrev = startPrev->prev;
-        copyPrev = copyPrev->prev;
+        copyBoard = copyBoard->next;
+        this->memory = this->memory->next;
     }
+    std::cout << "copy constructor chiamato" << std::endl;
 }
 
 
