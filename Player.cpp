@@ -107,7 +107,6 @@ Player::~Player(){
     std::cout << "distruttore chiamato" << std::endl;
 }
 
-
 // copy constructor
 Player::Player(const Player& copy){
     this->player_nr = copy.player_nr;
@@ -133,6 +132,9 @@ Player::Player(const Player& copy){
     std::cout << "copy constructor chiamato" << std::endl;
 }
 
+Player &Player::operator=(const Player &copy) {
+    return *this;
+}
 
 Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
     if(r < 0 || r > 7 || c < 0 || c > 7)
@@ -154,11 +156,7 @@ Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) cons
     return e; // used as escape value
 
 }
-/*
-Player& operator=(const Player&){
-    std::cout << "operator= called" << std::endl;
-}
- */
+
 void Player::load_board(const std::string& filename){
     std::ifstream file;
     file.open("../" + filename);
@@ -214,9 +212,15 @@ int Player::recurrence() const{
     return 0;
 }
 
+
 int main(){
 
     Player p1(1);
     Player p2(p1); // test the copy constructor
+
+    Player::piece p = p2.operator()(1, 1, 0);
+
+    std::cout << p << std::endl;
+
     return 0;
 }
