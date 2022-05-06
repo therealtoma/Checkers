@@ -9,9 +9,9 @@ Player::Player(int player_nr) {
     this->board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
-    memory = new Impl; // initializes the memory
-    memory->next = nullptr; // sets the next pointer to nullptr
-    memory->prev = nullptr; // sets the prev pointer to nullptr
+    memory = new Impl; // creates a new memory
+    memory->next = nullptr;
+    memory->prev = nullptr;
 
     /* initializes the starting board (in the stack)*/
     // first row
@@ -99,7 +99,7 @@ Player::Player(int player_nr) {
 
 // destructor
 Player::~Player(){
-    while(memory){
+    while(this->memory){
         Impl* temp = memory;
         memory = memory->next;
         delete temp;
@@ -115,19 +115,21 @@ Player::Player(const Player& copy){
     // allocates the memory of this object
     Impl* copyBoard = copy.memory;
     while(copyBoard){
-        this->memory = new Impl;
-        this->memory->next = copyBoard->next;
-        this->memory->prev = copyBoard->prev;
-
+        Impl* temp = new Impl;
+        temp->next = nullptr;
+        temp->prev = nullptr;
         // assigning the board
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                this->memory->board[i][j] = copyBoard->board[i][j];
+                temp->board[i][j] = copyBoard->board[i][j];
             }
         }
+        this->memory = temp;
+
 
         copyBoard = copyBoard->next;
         this->memory = this->memory->next;
+        delete temp;
     }
     std::cout << "copy constructor chiamato" << std::endl;
 }
@@ -158,6 +160,7 @@ Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) cons
 }
 
 void Player::load_board(const std::string& filename){
+    /*
     std::ifstream file;
     file.open("../" + filename);
     std::string line;
@@ -173,6 +176,17 @@ void Player::load_board(const std::string& filename){
     }
 
     file.close();
+    */
+
+    this->memory->next = new Impl{nullptr, this->memory};
+    this->memory = this->memory->next;
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            this->memory->board[i][j] = e;
+        }
+    }
+    this->board_nr++;
 
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
@@ -218,9 +232,7 @@ int main(){
     Player p1(1);
     Player p2(p1); // test the copy constructor
 
-    Player::piece p = p2.operator()(1, 1, 0);
-
-    std::cout << p << std::endl;
+    return 0;
 
     return 0;
 }
