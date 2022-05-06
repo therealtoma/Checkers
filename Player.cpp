@@ -9,9 +9,9 @@ Player::Player(int player_nr) {
     this->board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
-    memory = new Impl; // creates a new memory
-    memory->next = nullptr;
-    memory->prev = nullptr;
+    this->memory = new Impl; // creates a new memory
+    this->memory->next = nullptr;
+    this->memory->prev = nullptr;
 
     /* initializes the starting board (in the stack)*/
     // first row
@@ -109,29 +109,39 @@ Player::~Player(){
 
 // copy constructor
 Player::Player(const Player& copy){
-    this->player_nr = copy.player_nr;
-    this->board_nr = copy.board_nr;
 
-    // allocates the memory of this object
-    Impl* copyBoard = copy.memory;
-    while(copyBoard){
-        Impl* temp = new Impl;
-        temp->next = nullptr;
-        temp->prev = nullptr;
-        // assigning the board
+    this->board_nr = copy.board_nr;
+    this->player_nr = copy.player_nr;
+
+    // torno all'inizio delle liste
+    Impl* copyMemory = copy.memory;
+    while(copyMemory->prev != nullptr)
+        copyMemory = copyMemory->prev;
+
+    while(this->memory->prev != nullptr)
+        this->memory = this->memory->prev;
+
+    Impl* begin = this->memory;
+    while(copyMemory != nullptr){
+        if(this->memory->next == nullptr){
+            this->memory->next = new Impl;
+            this->memory->next->next = nullptr;
+            this->memory->next->prev = this->memory;
+        }
+
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
-                temp->board[i][j] = copyBoard->board[i][j];
+                this->memory->board[i][j] = copyMemory->board[i][j];
             }
         }
-        this->memory = temp;
 
-
-        copyBoard = copyBoard->next;
+        copyMemory = copyMemory->next;
         this->memory = this->memory->next;
-        delete temp;
     }
-    std::cout << "copy constructor chiamato" << std::endl;
+
+    this->memory = begin;
+
+    std::cout << "copy constructor called" << std::endl;
 }
 
 Player &Player::operator=(const Player &copy) {
@@ -160,33 +170,7 @@ Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) cons
 }
 
 void Player::load_board(const std::string& filename){
-    /*
-    std::ifstream file;
-    file.open("../" + filename);
-    std::string line;
-    if(!file.is_open())
-        throw player_exception{player_exception::missing_file, "the file is missing"};
-
-    // returns 0 while the file end is not reached
-    while(!file.eof()){
-        // gets the line
-        file >> line;
-        std::cout << line << std::endl;
-        std::cout << "file is open" << std::endl;
-    }
-
-    file.close();
-    */
-
-    this->memory->next = new Impl{nullptr, this->memory};
-    this->memory = this->memory->next;
-
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            this->memory->board[i][j] = e;
-        }
-    }
-    this->board_nr++;
+    std::cout << "load board called" << std::endl;
 
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
@@ -230,7 +214,8 @@ int Player::recurrence() const{
 int main(){
 
     Player p1(1);
-    Player p2(p1); // test the copy constructor
+
+    Player p2 = p1;
 
     return 0;
 
