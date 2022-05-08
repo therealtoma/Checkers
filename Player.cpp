@@ -187,9 +187,9 @@ Player::Player(int player_nr) {
 Player::~Player(){
     std::cout << "distruttore chiamato" << std::endl;
 
-    Impl* current = memory;
+    pImpl current = memory;
     while(current != nullptr){
-        Impl* temp = current;
+        pImpl temp = current;
         current = current->next;
         delete temp;
     }
@@ -200,33 +200,29 @@ Player::~Player(){
 
 // copy constructor
 Player::Player(const Player& copy){
-
-
     std::cout << "copy constructor called" << std::endl;
-    this->board_nr = copy.board_nr;
-    this->player_nr = copy.player_nr;
-    Impl* copyMemory = copy.memory;
 
-    while(copyMemory != nullptr){
+    pImpl thisI = this->memory;
+    pImpl copyI = copy.memory;
 
-        if(memory->next == nullptr){
-            memory->next = new Impl;
-            memory->next->next = nullptr;
-        }
+    while(copyI != nullptr){
 
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                memory->board[i][j] = copyMemory->board[i][j];
+        if(thisI->next == nullptr)
+            thisI->next = new Impl{nullptr};
+
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                thisI->board[i][j] = copyI->board[i][j];
             }
         }
-        if(memory->next != nullptr)
-            memory = memory->next;
+
+        if(thisI->next == nullptr)
+            thisI=thisI->next;
         else{
-            memory->next = new Impl;
-            memory = memory->next;
-            memory->next = nullptr;
+            thisI->next = new Impl{nullptr};
+            thisI = thisI->next;
         }
-        copyMemory = copyMemory->next;
+        copyI = copyI->next;
     }
 
     std::cout << "copy constructor terminated" << std::endl;
