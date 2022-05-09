@@ -9,10 +9,8 @@ Player::Player(int player_nr) {
     board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
-    memory = new Impl; // creates a new memory
-    memory->next = new Impl;
-    memory->next->next = nullptr;
-    Impl* start = memory;
+    this->memory = new Impl; // creates a new memory
+    this->memory->next = nullptr;
 
     /* initializes the starting board (in the stack) */
     // first row
@@ -94,91 +92,6 @@ Player::Player(int player_nr) {
     memory->board[7][5] = e;
     memory->board[7][6] = o;
     memory->board[7][7] = e;
-
-
-    memory = memory->next; // sets the current memory to the next one
-    /* initializes the starting board (in the stack) */
-    // first row
-    memory->board[0][0] = e;
-    memory->board[0][1] = x;
-    memory->board[0][2] = e;
-    memory->board[0][3] = e;
-    memory->board[0][4] = e;
-    memory->board[0][5] = o;
-    memory->board[0][6] = e;
-    memory->board[0][7] = o;
-
-    // second row
-    memory->board[1][0] = x;
-    memory->board[1][1] = e;
-    memory->board[1][2] = x;
-    memory->board[1][3] = e;
-    memory->board[1][4] = e;
-    memory->board[1][5] = e;
-    memory->board[1][6] = o;
-    memory->board[1][7] = e;
-
-    //third row
-    memory->board[2][0] = e;
-    memory->board[2][1] = x;
-    memory->board[2][2] = e;
-    memory->board[2][3] = e;
-    memory->board[2][4] = e;
-    memory->board[2][5] = o;
-    memory->board[2][6] = e;
-    memory->board[2][7] = o;
-
-    //fourth row
-    memory->board[3][0] = x;
-    memory->board[3][1] = e;
-    memory->board[3][2] = x;
-    memory->board[3][3] = e;
-    memory->board[3][4] = e;
-    memory->board[3][5] = e;
-    memory->board[3][6] = o;
-    memory->board[3][7] = e;
-
-    //fifth row
-    memory->board[4][0] = e;
-    memory->board[4][1] = x;
-    memory->board[4][2] = e;
-    memory->board[4][3] = e;
-    memory->board[4][4] = e;
-    memory->board[4][5] = o;
-    memory->board[4][6] = e;
-    memory->board[4][7] = o;
-
-    //sixth row
-    memory->board[5][0] = x;
-    memory->board[5][1] = e;
-    memory->board[5][2] = x;
-    memory->board[5][3] = e;
-    memory->board[5][4] = e;
-    memory->board[5][5] = e;
-    memory->board[5][6] = o;
-    memory->board[5][7] = e;
-
-    //seventh row
-    memory->board[6][0] = e;
-    memory->board[6][1] = x;
-    memory->board[6][2] = e;
-    memory->board[6][3] = e;
-    memory->board[6][4] = e;
-    memory->board[6][5] = o;
-    memory->board[6][6] = e;
-    memory->board[6][7] = o;
-
-    //eighth row
-    memory->board[7][0] = x;
-    memory->board[7][1] = e;
-    memory->board[7][2] = x;
-    memory->board[7][3] = e;
-    memory->board[7][4] = e;
-    memory->board[7][5] = e;
-    memory->board[7][6] = o;
-    memory->board[7][7] = e;
-
-    memory = start;
 
     std::cout << "costruttore terminato" << std::endl;
 } // constructor
@@ -187,44 +100,41 @@ Player::Player(int player_nr) {
 Player::~Player(){
     std::cout << "distruttore chiamato" << std::endl;
 
-    pImpl current = memory;
-    while(current != nullptr){
-        pImpl temp = current;
-        current = current->next;
+    while(memory != nullptr){
+        pImpl temp = memory;
+        memory = memory->next;
         delete temp;
     }
-    this->memory = nullptr;
-
+    delete memory;
     std::cout << "distruttore terminato" << std::endl;
 }
 
 // copy constructor
-Player::Player(const Player& copy){
+Player::Player(const Player& copy) {
     std::cout << "copy constructor called" << std::endl;
 
-    pImpl thisI = this->memory;
-    pImpl copyI = copy.memory;
+    this->board_nr = copy.board_nr;
+    this->player_nr = copy.player_nr;
+    memory = new Impl{nullptr};
+    pImpl start = this->memory;
+    pImpl copyMemory = copy.memory;
 
-    while(copyI != nullptr){
-
-        if(thisI->next == nullptr)
-            thisI->next = new Impl{nullptr};
-
+    while (copyMemory != nullptr) {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                thisI->board[i][j] = copyI->board[i][j];
+                this->memory->board[i][j] = copyMemory->board[i][j];
             }
         }
 
-        if(thisI->next == nullptr)
-            thisI=thisI->next;
-        else{
-            thisI->next = new Impl{nullptr};
-            thisI = thisI->next;
+        memory = memory->next;
+        if(copyMemory->next != nullptr) {
+            memory = new Impl{nullptr};
         }
-        copyI = copyI->next;
+        copyMemory = copyMemory->next;
     }
 
+
+    this->memory = start;
     std::cout << "copy constructor terminated" << std::endl;
 }
 
@@ -299,7 +209,9 @@ int Player::recurrence() const{
 int main(){
 
     Player p1(1);
-    Player p2(p1);
+    Player p2(1);
+
+    Player p3(p1);
 
     return 0;
 }
