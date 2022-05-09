@@ -94,11 +94,8 @@ private:
 
 	struct Impl{
 		Impl* next;
-		Impl* prev;
 		piece board[8][8];
 	};
-
-	typedef Impl* pImpl;
-
+    typedef Impl* pImpl;
 	pImpl memory;
 };
