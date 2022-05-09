@@ -171,21 +171,25 @@ Player& operator=(const Player&){
 }
  */
 void Player::load_board(const std::string& filename){
-    std::ifstream file;
-    file.open("../" + filename);
-    std::string line;
-    if(!file.is_open())
-        throw player_exception{player_exception::missing_file, "the file is missing"};
+    std::cout << "load board called" << std::endl;
+    std::cout << "filename: " << filename << std::endl;
 
-    // returns 0 while the file end is not reached
-    while(!file.eof()){
-        // gets the line
-        file >> line;
-        std::cout << line << std::endl;
-        std::cout << "file is open" << std::endl;
+    pImpl start = this->memory;
+
+    while(this->memory != nullptr)
+        this->memory = this->memory->next;
+
+    this->memory = new Impl{nullptr};
+
+    for(int i = 0; i < 8; i++){
+        for(int j = 0; j < 8; j++){
+            this->memory->board[i][j] = o;
+        }
     }
 
-    file.close();
+    this->memory = start;
+
+    std::cout << "load board terminated" << std::endl;
 
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
@@ -228,6 +232,10 @@ int Player::recurrence() const{
 int main(){
 
     Player p1(1);
-    Player p2(p1); // test the copy constructor
+    Player p2(1);
+
+    Player p3(p1);
+    p3.load_board("test1");
+
     return 0;
 }
