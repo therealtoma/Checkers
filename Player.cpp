@@ -1,18 +1,19 @@
 #include "player.hpp"
 
 Player::Player(int player_nr) {
-    std::cout << "costruttore chiamato" << std::endl;
+
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 0 && player_nr != 1)
         throw player_exception{player_exception::index_out_of_bounds, "The player can only be 0 or 1"};
 
-    board_nr = 1;
+    this->board_nr = 1;
     this->player_nr = player_nr; // sets the player number
 
-    this->memory = new Impl; // creates a new memory
-    this->memory->next = nullptr;
+    memory = new Impl; // initializes the memory
+    memory->next = nullptr; // sets the next pointer to nullptr
+    memory->prev = nullptr; // sets the prev pointer to nullptr
 
-    /* initializes the starting board (in the stack) */
+    /* initializes the starting board (in the stack)*/
     // first row
     memory->board[0][0] = e;
     memory->board[0][1] = x;
@@ -92,54 +93,55 @@ Player::Player(int player_nr) {
     memory->board[7][5] = e;
     memory->board[7][6] = o;
     memory->board[7][7] = e;
-
-    std::cout << "costruttore terminato" << std::endl;
 } // constructor
 
 // destructor
 Player::~Player(){
-    std::cout << "distruttore chiamato" << std::endl;
-
-    while(memory != nullptr){
-        pImpl temp = memory;
+    while(memory){
+        Impl* temp = memory;
         memory = memory->next;
         delete temp;
     }
-    delete memory;
-    std::cout << "distruttore terminato" << std::endl;
 }
+
 
 // copy constructor
-Player::Player(const Player& copy) {
-    std::cout << "copy constructor called" << std::endl;
-
+Player::Player(const Player& copy){
+    // sets the board number
     this->board_nr = copy.board_nr;
+    // sets the player number
     this->player_nr = copy.player_nr;
-    memory = new Impl{nullptr};
-    pImpl start = this->memory;
-    pImpl copyMemory = copy.memory;
+    this->memory = new Impl{nullptr, nullptr}; // initializes the memory
 
-    while (copyMemory != nullptr) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                this->memory->board[i][j] = copyMemory->board[i][j];
+
+    /* sets the next and prev pointers */
+    pImpl copyNext = copy.memory->next;
+    pImpl startThis = this->memory->next;
+
+    while(copyNext){
+        startThis->next = new Impl;
+        //sets the board
+        for(int i = 0; i < 8; i++){
+            for(int j = 0; j < 8; j++){
+                startThis->board[i][j] = copyNext->board[i][j];
             }
         }
-
-        memory = memory->next;
-        if(copyMemory->next != nullptr) {
-            memory = new Impl{nullptr};
-        }
-        copyMemory = copyMemory->next;
+        startThis->next->prev = startThis;
+        startThis = startThis->next;
+        copyNext = copyNext->next;
     }
 
+    // sets the prev pointer
+    pImpl copyPrev = copy.memory->prev;
+    pImpl startPrev = this->memory->prev;
 
-    this->memory = start;
-    std::cout << "copy constructor terminated" << std::endl;
-}
-
-Player &Player::operator=(const Player &copy) {
-    return *this;
+    // to complete
+    while(copyPrev){
+        startPrev->prev = new Impl;
+        startPrev->prev->next = startPrev;
+        startPrev = startPrev->prev;
+        copyPrev = copyPrev->prev;
+    }
 }
 
 
@@ -163,9 +165,27 @@ Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) cons
     return e; // used as escape value
 
 }
-
+/*
+Player& operator=(const Player&){
+    std::cout << "operator= called" << std::endl;
+}
+ */
 void Player::load_board(const std::string& filename){
-    std::cout << "load board called" << std::endl;
+    std::ifstream file;
+    file.open("../" + filename);
+    std::string line;
+    if(!file.is_open())
+        throw player_exception{player_exception::missing_file, "the file is missing"};
+
+    // returns 0 while the file end is not reached
+    while(!file.eof()){
+        // gets the line
+        file >> line;
+        std::cout << line << std::endl;
+        std::cout << "file is open" << std::endl;
+    }
+
+    file.close();
 
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
@@ -205,13 +225,9 @@ int Player::recurrence() const{
     return 0;
 }
 
-
 int main(){
 
     Player p1(1);
-    Player p2(1);
-
-    Player p3(p1);
-
+    Player p2(p1); // test the copy constructor
     return 0;
 }
