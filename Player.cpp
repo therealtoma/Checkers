@@ -116,24 +116,26 @@ Player::Player(const Player& copy){
     this->board_nr = copy.board_nr;
     // sets the player number
     this->player_nr = copy.player_nr;
-
+    // allocates memory
     memory = new Impl{nullptr};
-    pImpl start = this->memory;
-    pImpl copyMemory = copy.memory;
+    pImpl start = this->memory; // saves the beginning of the list
+    pImpl copyMemory = copy.memory; // saves a copy of the copy memory
 
-    while(copyMemory != nullptr){
+    // loops the memory
+    while(copyMemory){
+        // saves the board
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 this->memory->board[i][j] = copyMemory->board[i][j];
             }
         }
         memory = memory->next;
-        if(copyMemory->next != nullptr)
+        if(copyMemory->next)
             memory = new Impl{nullptr};
 
         copyMemory = copyMemory->next;
     }
-
+    // goes back to the beginning of the list
     this->memory = start;
     std::cout << "copy constructor ended" << std::endl;
 }
@@ -170,7 +172,7 @@ void Player::load_board(const std::string& filename){
 
     pImpl start = this->memory;
 
-    while(this->memory != nullptr)
+    while(this->memory != nullptr) {
         this->memory = this->memory->next;
 /*
     this->memory = new Impl{nullptr};
@@ -181,6 +183,7 @@ void Player::load_board(const std::string& filename){
         }
     }
 */
+    }
     this->memory = start;
 
     std::cout << "load board terminated" << std::endl;
