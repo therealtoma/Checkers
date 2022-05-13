@@ -92,6 +92,7 @@ Player::Player(int player_nr) {
     memory->board[7][6] = o;
     memory->board[7][7] = e;
 
+
     std::cout << "constructor ended" << std::endl;
 
 } // constructor
@@ -168,23 +169,20 @@ Player& operator=(const Player&){
  */
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
-    std::cout << "filename: " << filename << std::endl;
+    
+    pImpl it = this->memory;
 
-    pImpl start = this->memory;
+    while(it->next)
+        it = it->next;
 
-    while(this->memory != nullptr) {
-        this->memory = this->memory->next;
-/*
-    this->memory = new Impl{nullptr};
+    it->next = new Impl{nullptr};
+    it = it->next;
 
     for(int i = 0; i < 8; i++){
         for(int j = 0; j < 8; j++){
-            this->memory->board[i][j] = o;
+            it->board[i][j] = o;
         }
     }
-*/
-    }
-    this->memory = start;
 
     std::cout << "load board terminated" << std::endl;
 
@@ -232,7 +230,8 @@ int main(){
     Player p2(1);
 
     Player p3(p1);
-    p3.load_board("test1");
+
+    p3.load_board("test1,txt");
 
     return 0;
 }
