@@ -99,12 +99,13 @@ Player::Player(int player_nr) {
 // destructor
 Player::~Player(){
     std::cout << "destructor called" << std::endl;
+    // loops the list
     while(memory != nullptr){
-        Impl* temp = memory;
-        memory = memory->next;
-        delete temp;
+        Impl* temp = memory; // saves the list address
+        memory = memory->next; // goes ti the next node
+        delete temp; // deletes the memory
     }
-    delete memory;
+    delete memory; // deletes the last memory
     std::cout << "destructor ended" << std::endl;
 }
 
@@ -116,24 +117,26 @@ Player::Player(const Player& copy){
     this->board_nr = copy.board_nr;
     // sets the player number
     this->player_nr = copy.player_nr;
-
+    // allocates memory
     memory = new Impl{nullptr};
-    pImpl start = this->memory;
-    pImpl copyMemory = copy.memory;
+    pImpl start = this->memory; // saves the beginning of the list
+    pImpl copyMemory = copy.memory; // saves a copy of the copy memory
 
-    while(copyMemory != nullptr){
+    // loops the memory
+    while(copyMemory){
+        // saves the board
         for(int i = 0; i < 8; i++){
             for(int j = 0; j < 8; j++){
                 this->memory->board[i][j] = copyMemory->board[i][j];
             }
         }
         memory = memory->next;
-        if(copyMemory->next != nullptr)
+        if(copyMemory->next)
             memory = new Impl{nullptr};
 
         copyMemory = copyMemory->next;
     }
-
+    // goes back to the beginning of the list
     this->memory = start;
     std::cout << "copy constructor ended" << std::endl;
 }
@@ -166,23 +169,54 @@ Player& operator=(const Player&){
  */
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
-    std::cout << "filename: " << filename << std::endl;
 
-    pImpl start = this->memory;
+    pImpl it = this->memory;
 
-    while(this->memory != nullptr)
-        this->memory = this->memory->next;
-/*
-    this->memory = new Impl{nullptr};
+    while(it->next)
+        it = it->next;
 
-    for(int i = 0; i < 8; i++){
-        for(int j = 0; j < 8; j++){
-            this->memory->board[i][j] = o;
+    it->next = new Impl{nullptr};
+    it = it->next;
+// sostituire il for con il sistema per leggere da file
+    std::cout << "file: " << filename << std::endl;
+    std::fstream file(filename);
+    if(!file) throw player_exception{player_exception::missing_file, "There was a problem with the files, ending!"};
+    // loop till the end of the file
+    std::string line;
+    int i = 0, j = 7;
+    while(std::getline(file, line)){
+        // check the character and store it in the enum board
+        if(line.length() != 8){
+            throw player_exception{player_exception::invalid_board, "the board is not valid"};
         }
-    }
-*/
-    this->memory = start;
 
+        i = 0;
+        for(char c : line) {
+            switch (c) {
+                case ' ':
+                    it->board[i][j] = e;
+                    break;
+                case 'x':
+                    it->board[i][j] = x;
+                    break;
+                case 'X':
+                    it->board[i][j] = X;
+                    break;
+                case 'o':
+                    it->board[i][j] = o;
+                    break;
+                case 'O':
+                    it->board[i][j] = O;
+                    break;
+                default:
+                    throw player_exception{player_exception::missing_file,
+                                           "There was a problem with the structure of the file, ending"};
+            }
+            i++;
+        }
+        j--;
+    }
+    file.close(); // closing the file
     std::cout << "load board terminated" << std::endl;
 
 }
@@ -224,12 +258,16 @@ int Player::recurrence() const{
 }
 
 int main(){
+    try {
+        Player p1(1);
+        Player p2(1);
 
-    Player p1(1);
-    Player p2(1);
+        Player p3(p1);
 
-    Player p3(p1);
-    p3.load_board("test1");
-
+        p3.load_board("../Board1.txt");
+    }
+    catch(player_exception& e){
+        std::cout << e.msg << std::endl;
+    }
     return 0;
 }
