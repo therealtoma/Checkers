@@ -239,10 +239,12 @@ void Player::store_board(const std::string& filename, int history_offset /* =0 *
     int j = 7;
     while(std::getline(file, line)){
         // check the character and store it in the enum board
-        if(line.length() != 8)
+        if(line.length() != 15) // the 8 cells plus the spaces between them
             throw player_exception{player_exception::invalid_board, "the board is not valid"};
         i = 0;
-        for(char c : line) {
+        // loops the line skipping the spaces between the cells
+        for(int k = 0; k < 15; k+=2) {
+            char c = line.at(k);
             switch (c) {
                 case ' ':
                     it->board[i][j] = e;
@@ -313,6 +315,7 @@ int main(){
         Player p3(p1);
 
         p3.store_board("../Board1.txt", 0);
+        std::cout << "fine" << std::endl;
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
