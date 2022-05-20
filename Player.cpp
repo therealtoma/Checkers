@@ -183,13 +183,11 @@ void Player::load_board(const std::string& filename){
     if(!file) throw player_exception{player_exception::missing_file, "There was a problem with the files, ending!"};
     // loop till the end of the file
     std::string line;
-    int i = 0, j = 7;
+    int i, j = 7;
     while(std::getline(file, line)){
         // check the character and store it in the enum board
-        if(line.length() != 8){
+        if(line.length() != 8)
             throw player_exception{player_exception::invalid_board, "the board is not valid"};
-        }
-
         i = 0;
         for(char c : line) {
             switch (c) {
@@ -217,11 +215,63 @@ void Player::load_board(const std::string& filename){
         j--;
     }
     file.close(); // closing the file
+    board_nr++; // incrementing the board number
     std::cout << "load board terminated" << std::endl;
 
 }
 void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
     std::cout << "store_board called" << std::endl;
+    if(history_offset < 0 || history_offset > this->board_nr)
+        throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
+
+    pImpl it = this->memory;
+    int i = this->board_nr - 1;
+
+    while(i != history_offset){
+        it = it->next;
+        i--;
+    }
+
+    pImpl nextNode = it->next;
+    it->next = new Impl{nextNode};
+    std::fstream file(filename);
+    std::string line;
+    int j = 7;
+    while(std::getline(file, line)){
+        // check the character and store it in the enum board
+        if(line.length() != 15) // the 8 cells plus the spaces between them
+            throw player_exception{player_exception::invalid_board, "the board is not valid"};
+        i = 0;
+        // loops the line skipping the spaces between the cells
+        for(int k = 0; k < 15; k+=2) {
+            char c = line.at(k);
+            switch (c) {
+                case ' ':
+                    it->board[i][j] = e;
+                    break;
+                case 'x':
+                    it->board[i][j] = x;
+                    break;
+                case 'X':
+                    it->board[i][j] = X;
+                    break;
+                case 'o':
+                    it->board[i][j] = o;
+                    break;
+                case 'O':
+                    it->board[i][j] = O;
+                    break;
+                default:
+                    throw player_exception{player_exception::missing_file, "There was a problem with the structure of the file, ending"};
+            }
+            i++;
+        }
+        j--;
+    }
+
+    file.close();
+
+    std::cout << "store_board ended" << std::endl;
 }
 void Player::init_board(const std::string& filename) const{
     std::cout << "init_board called" << std::endl;
@@ -264,7 +314,8 @@ int main(){
 
         Player p3(p1);
 
-        p3.load_board("../Board1.txt");
+        p3.store_board("../Board1.txt", 0);
+        std::cout << "fine" << std::endl;
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
