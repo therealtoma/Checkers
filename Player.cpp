@@ -1,148 +1,84 @@
 #include "player.hpp"
+#define BOARD_SIZE 8 * 8
 
+struct Player::Impl{
+    Impl* next;
+    Player::piece* board; // the Dama board
+    int index; // the index of the board
+    int player_nr; // the player number
+};
+
+/**
+ * @brief Construct a new Player object
+ * @param player_nr the player number
+ */
 Player::Player(int player_nr) {
+
     std::cout << "constructor called" << std::endl;
+
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 0 && player_nr != 1)
         throw player_exception{player_exception::index_out_of_bounds, "The player can only be 0 or 1"};
 
-    this->board_nr = 1;
-    this->player_nr = player_nr; // sets the player number
-
-    memory = new Impl{nullptr}; // initializes the memory
-
-    /* initializes the starting board (in the stack)*/
-    // first row
-    memory->board[0][0] = e;
-    memory->board[0][1] = x;
-    memory->board[0][2] = e;
-    memory->board[0][3] = e;
-    memory->board[0][4] = e;
-    memory->board[0][5] = o;
-    memory->board[0][6] = e;
-    memory->board[0][7] = o;
-
-    // second row
-    memory->board[1][0] = x;
-    memory->board[1][1] = e;
-    memory->board[1][2] = x;
-    memory->board[1][3] = e;
-    memory->board[1][4] = e;
-    memory->board[1][5] = e;
-    memory->board[1][6] = o;
-    memory->board[1][7] = e;
-
-    //third row
-    memory->board[2][0] = e;
-    memory->board[2][1] = x;
-    memory->board[2][2] = e;
-    memory->board[2][3] = e;
-    memory->board[2][4] = e;
-    memory->board[2][5] = o;
-    memory->board[2][6] = e;
-    memory->board[2][7] = o;
-
-    //fourth row
-    memory->board[3][0] = x;
-    memory->board[3][1] = e;
-    memory->board[3][2] = x;
-    memory->board[3][3] = e;
-    memory->board[3][4] = e;
-    memory->board[3][5] = e;
-    memory->board[3][6] = o;
-    memory->board[3][7] = e;
-
-    //fifth row
-    memory->board[4][0] = e;
-    memory->board[4][1] = x;
-    memory->board[4][2] = e;
-    memory->board[4][3] = e;
-    memory->board[4][4] = e;
-    memory->board[4][5] = o;
-    memory->board[4][6] = e;
-    memory->board[4][7] = o;
-
-    //sixth row
-    memory->board[5][0] = x;
-    memory->board[5][1] = e;
-    memory->board[5][2] = x;
-    memory->board[5][3] = e;
-    memory->board[5][4] = e;
-    memory->board[5][5] = e;
-    memory->board[5][6] = o;
-    memory->board[5][7] = e;
-
-    //seventh row
-    memory->board[6][0] = e;
-    memory->board[6][1] = x;
-    memory->board[6][2] = e;
-    memory->board[6][3] = e;
-    memory->board[6][4] = e;
-    memory->board[6][5] = o;
-    memory->board[6][6] = e;
-    memory->board[6][7] = o;
-
-    //eighth row
-    memory->board[7][0] = x;
-    memory->board[7][1] = e;
-    memory->board[7][2] = x;
-    memory->board[7][3] = e;
-    memory->board[7][4] = e;
-    memory->board[7][5] = e;
-    memory->board[7][6] = o;
-    memory->board[7][7] = e;
+    pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
     std::cout << "constructor ended" << std::endl;
 
 } // constructor
 
-// destructor
+/**
+ * @brief Destroy the Player object
+ */
 Player::~Player(){
     std::cout << "destructor called" << std::endl;
     // loops the list
-    while(memory != nullptr){
-        Impl* temp = memory; // saves the list address
-        memory = memory->next; // goes ti the next node
+    while(pimpl != nullptr){
+        Impl* temp = pimpl; // saves the list address
+        pimpl = pimpl->next; // goes to the next node
+        delete[] temp->board;
         delete temp; // deletes the memory
     }
-    delete memory; // deletes the last memory
+    delete pimpl; // deletes the last memory
     std::cout << "destructor ended" << std::endl;
-}
+} // destructor
 
-
-// copy constructor
+/**
+ * @brief Copy constructor
+ * @param copy the other player
+ */
 Player::Player(const Player& copy){
     std::cout << "copy constructor called" << std::endl;
-    // sets the board number
-    this->board_nr = copy.board_nr;
-    // sets the player number
-    this->player_nr = copy.player_nr;
-    // allocates memory
-    memory = new Impl{nullptr};
-    pImpl start = this->memory; // saves the beginning of the list
-    pImpl copyMemory = copy.memory; // saves a copy of the copy memory
 
-    // loops the memory
+    // allocates memory
+    this->pimpl = new Impl{ nullptr };
+
+    Impl* thisMemory = this->pimpl; // saves the beginning of the list
+    Impl* copyMemory = copy.pimpl; // saves a copy of the copy memory
+
+    // loops the copy
     while(copyMemory){
         // saves the board
-        for(int i = 0; i < 8; i++){
-            for(int j = 0; j < 8; j++){
-                this->memory->board[i][j] = copyMemory->board[i][j];
+        thisMemory->index = copyMemory->index;
+        thisMemory->player_nr = copyMemory->player_nr;
+        thisMemory->board = new piece[BOARD_SIZE];
+        for(int i = 0; i < BOARD_SIZE/2; i++){
+            for(int j = 0; j < BOARD_SIZE/2; j++){
+                thisMemory->board[i * BOARD_SIZE/2 + j] = copyMemory->board[i * BOARD_SIZE/2 + j];
             }
         }
-        memory = memory->next;
+        thisMemory = thisMemory->next;
+
         if(copyMemory->next)
-            memory = new Impl{nullptr};
+            thisMemory = new Impl{nullptr};
 
         copyMemory = copyMemory->next;
     }
-    // goes back to the beginning of the list
-    this->memory = start;
+
     std::cout << "copy constructor ended" << std::endl;
-}
+} // copy constructor
 
-
-Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) const{
+// operator ()
+/*Player::piece Player::operator()(int r, int c, int history_offset *//* =0 *//*) const{
     if(r < 0 || r > 7 || c < 0 || c > 7)
         throw player_exception{player_exception::index_out_of_bounds, "coordinates not valid"};
 
@@ -162,11 +98,14 @@ Player::piece Player::operator()(int r, int c, int history_offset /* =0 */) cons
     return e; // used as escape value
 
 }
-/*
+
+*//*
 Player& operator=(const Player&){
     std::cout << "operator= called" << std::endl;
 }
- */
+ *//*
+
+// load board
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
@@ -219,10 +158,15 @@ void Player::load_board(const std::string& filename){
     std::cout << "load board terminated" << std::endl;
 
 }
-void Player::store_board(const std::string& filename, int history_offset /* =0 */) const{
+
+// store board
+void Player::store_board(const std::string& filename, int history_offset *//* =0 *//*) const{
     std::cout << "store_board called" << std::endl;
-    if(history_offset < 0 || history_offset > this->board_nr)
+    if(history_offset < 0)
         throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
+
+
+
 
     pImpl it = this->memory;
     int i = this->board_nr - 1;
@@ -272,10 +216,13 @@ void Player::store_board(const std::string& filename, int history_offset /* =0 *
     file.close();
 
     std::cout << "store_board ended" << std::endl;
-}
+}*/
+
+// init board
 void Player::init_board(const std::string& filename) const{
     std::cout << "init_board called" << std::endl;
 }
+
 void Player::move(){
     std::cout << "move called" << std::endl;
 }
@@ -309,13 +256,12 @@ int Player::recurrence() const{
 
 int main(){
     try {
-        Player p1(1);
+        Player p1(0);
         Player p2(1);
 
-        Player p3(p1);
+        //Player p3(p1);
 
-        p3.store_board("../Board1.txt", 0);
-        std::cout << "fine" << std::endl;
+        // p3.store_board("../Board1.txt", 0);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
