@@ -51,7 +51,7 @@ public:
 	 */
 	void store_board(const std::string& filename, int history_offset = 0) const;
 	
-	//create and store an initial board from file
+	// create the initial board, store it inside the most recent player memory cell and save it in the file
 	void init_board(const std::string& filename) const;
 	
 	/* 

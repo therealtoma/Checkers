@@ -1,6 +1,89 @@
 #include "player.hpp"
 #define BOARD_SIZE 8 * 8
 
+void fillInitialBoard(Player::piece* p){
+    // first row
+    p[BOARD_SIZE / 2 * 0 + 0] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 1] = Player::x;
+    p[BOARD_SIZE / 2 * 0 + 2] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 4] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 6] = Player::e;
+    p[BOARD_SIZE / 2 * 0 + 7] = Player::x;
+
+    //second row
+    p[BOARD_SIZE / 2 * 1 + 0] = Player::x;
+    p[BOARD_SIZE / 2 * 1 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 1 + 2] = Player::x;
+    p[BOARD_SIZE / 2 * 1 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 1 + 4] = Player::x;
+    p[BOARD_SIZE / 2 * 1 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 1 + 6] = Player::x;
+    p[BOARD_SIZE / 2 * 1 + 7] = Player::e;
+
+    // third row
+    p[BOARD_SIZE / 2 * 2 + 0] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 2] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 4] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 6] = Player::e;
+    p[BOARD_SIZE / 2 * 2 + 7] = Player::x;
+
+    // fourth row
+    p[BOARD_SIZE / 2 * 3 + 0] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 2] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 4] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 6] = Player::e;
+    p[BOARD_SIZE / 2 * 3 + 7] = Player::e;
+
+    // fifth row
+    p[BOARD_SIZE / 2 * 4 + 0] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 2] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 4] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 6] = Player::e;
+    p[BOARD_SIZE / 2 * 4 + 7] = Player::e;
+
+    // sixth row
+    p[BOARD_SIZE / 2 * 5 + 0] = Player::o;
+    p[BOARD_SIZE / 2 * 5 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 5 + 2] = Player::o;
+    p[BOARD_SIZE / 2 * 5 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 5 + 4] = Player::o;
+    p[BOARD_SIZE / 2 * 5 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 5 + 6] = Player::o;
+    p[BOARD_SIZE / 2 * 5 + 7] = Player::e;
+
+    // seventh row
+    p[BOARD_SIZE / 2 * 6 + 0] = Player::e;
+    p[BOARD_SIZE / 2 * 6 + 1] = Player::o;
+    p[BOARD_SIZE / 2 * 6 + 2] = Player::e;
+    p[BOARD_SIZE / 2 * 6 + 3] = Player::o;
+    p[BOARD_SIZE / 2 * 6 + 4] = Player::e;
+    p[BOARD_SIZE / 2 * 6 + 5] = Player::o;
+    p[BOARD_SIZE / 2 * 6 + 6] = Player::e;
+    p[BOARD_SIZE / 2 * 6 + 7] = Player::o;
+
+    // eith row
+    p[BOARD_SIZE / 2 * 7 + 0] = Player::o;
+    p[BOARD_SIZE / 2 * 7 + 1] = Player::e;
+    p[BOARD_SIZE / 2 * 7 + 2] = Player::o;
+    p[BOARD_SIZE / 2 * 7 + 3] = Player::e;
+    p[BOARD_SIZE / 2 * 7 + 4] = Player::o;
+    p[BOARD_SIZE / 2 * 7 + 5] = Player::e;
+    p[BOARD_SIZE / 2 * 7 + 6] = Player::o;
+    p[BOARD_SIZE / 2 * 7 + 7] = Player::e;
+
+}
+
 struct Player::Impl{
     Impl* next;
     Player::piece* board; // the Dama board
@@ -220,7 +303,11 @@ void Player::store_board(const std::string& filename, int history_offset *//* =0
 
 // init board
 void Player::init_board(const std::string& filename) const{
+    // initial board
     std::cout << "init_board called" << std::endl;
+    Player::piece* initial_board = new piece[BOARD_SIZE];
+    fillInitialBoard(initial_board);
+    std::cout << "init_board ended" << std::endl;
 }
 
 void Player::move(){
@@ -254,14 +341,13 @@ int Player::recurrence() const{
     return 0;
 }
 
+
 int main(){
     try {
         Player p1(0);
         Player p2(1);
 
-        //Player p3(p1);
-
-        // p3.store_board("../Board1.txt", 0);
+        p2.init_board("ciao");
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
