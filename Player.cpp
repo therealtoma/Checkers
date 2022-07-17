@@ -1,7 +1,7 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
 
-char convert(Player::piece p){
+char convertToChar(Player::piece p){
     switch (p) {
         case Player::piece::x:
             return 'x';
@@ -14,6 +14,34 @@ char convert(Player::piece p){
         case Player::piece::e:
             return ' ';
     }
+    return ' ';
+}
+
+Player::piece convertToPiece(char c){
+    switch (c) {
+        case 'x':
+            return Player::piece::x;
+        case 'X':
+            return Player::piece::X;
+        case 'o':
+            return Player::piece::o;
+        case 'O':
+            return Player::piece::O;
+        case ' ':
+            return Player::piece::e;
+    }
+    return Player::piece::e;
+}
+
+void deleteBoard(Player::piece** (&board)){
+    for(int i = 0; i < BOARD_SIZE; i++)
+        delete[] board[i];
+    delete[] board;
+}
+
+bool file_exists(const std::string& filename){
+    std::ifstream f(filename.c_str());
+    return f.good();
 }
 
 Player::piece** initialize_board(){
@@ -136,61 +164,59 @@ Player& operator=(const Player&){
 }
  */
 
-// load board
-/*
+
+/**
+ * Loads the board from the file and saves it in the most recent memory location
+ * @param filename the file name
+ */
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
-    pImpl it = this->memory;
+    Impl* temp = this->pimpl;
+    int lastIndex = this->pimpl->index;
 
-    while(it->next)
-        it = it->next;
-
-    it->next = new Impl{nullptr};
-    it = it->next;
-// sostituire il for con il sistema per leggere da file
-    std::cout << "file: " << filename << std::endl;
-    std::fstream file(filename);
-    if(!file) throw player_exception{player_exception::missing_file, "There was a problem with the files, ending!"};
-    // loop till the end of the file
-    std::string line;
-    int i, j = 7;
-    while(std::getline(file, line)){
-        // check the character and store it in the enum board
-        if(line.length() != 8)
-            throw player_exception{player_exception::invalid_board, "the board is not valid"};
-        i = 0;
-        for(char c : line) {
-            switch (c) {
-                case ' ':
-                    it->board[i][j] = e;
-                    break;
-                case 'x':
-                    it->board[i][j] = x;
-                    break;
-                case 'X':
-                    it->board[i][j] = X;
-                    break;
-                case 'o':
-                    it->board[i][j] = o;
-                    break;
-                case 'O':
-                    it->board[i][j] = O;
-                    break;
-                default:
-                    throw player_exception{player_exception::missing_file,
-                                           "There was a problem with the structure of the file, ending"};
-            }
-            i++;
-        }
-        j--;
+    while(temp->next != nullptr) {
+        lastIndex = temp->index;
+        temp = temp->next;
     }
-    file.close(); // closing the file
-    board_nr++; // incrementing the board number
-    std::cout << "load board terminated" << std::endl;
 
+    if(!file_exists(filename))
+        throw player_exception{player_exception::missing_file, "file not found"};
+
+    std::fstream file(filename, std::fstream::in);
+    Player::piece** board = initialize_board();
+    char cella;
+    int readCharacters = 0, i = BOARD_SIZE - 1, j = 0;
+
+    while(file.get(cella)) {
+        if(cella != '\n'){
+
+            board[i][j] = convertToPiece(cella);
+            j--;
+            i++;
+            readCharacters++;
+            if(j == BOARD_SIZE - 1){
+                j = 0;
+                i--;
+            }
+        }
+        file.get(cella);
+    }
+
+    if(readCharacters != BOARD_SIZE){
+        for(i = 0; i < BOARD_SIZE; i++)
+            delete[] board[i];
+        delete[] board;
+
+        throw player_exception{player_exception::invalid_board, "board not valid"};
+    }
+
+
+    file.close();
+
+    std::cout << "load board ended" << std::endl;
 }
-*/
+
 
 // store board
 /*
@@ -307,7 +333,7 @@ void Player::init_board(const std::string& filename) const{
 
     for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convert(temp->board[i][j]);
+            file << convertToChar(temp->board[i][j]);
             if(j != BOARD_SIZE - 1) file << ' ';
         }
         if(i != 0)
@@ -363,6 +389,7 @@ int main(){
         Player p2(1);
 
          p2.init_board("ciao");
+         p1.load_board("ciai");
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
