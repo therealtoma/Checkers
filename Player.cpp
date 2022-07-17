@@ -106,7 +106,7 @@ Player::Player(const Player& copy){
 } // copy constructor
 
 // operator ()
-/*Player::piece Player::operator()(int r, int c, int history_offset *//* =0 *//*) const{
+/*Player::piece Player::operator()(int r, int c, int history_offset) const{
     if(r < 0 || r > 7 || c < 0 || c > 7)
         throw player_exception{player_exception::index_out_of_bounds, "coordinates not valid"};
 
@@ -127,13 +127,17 @@ Player::Player(const Player& copy){
 
 }
 
-*//*
+*/
+
+// operator =
+/*
 Player& operator=(const Player&){
     std::cout << "operator= called" << std::endl;
 }
- *//*
+ */
 
 // load board
+/*
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
@@ -186,9 +190,11 @@ void Player::load_board(const std::string& filename){
     std::cout << "load board terminated" << std::endl;
 
 }
+*/
 
 // store board
-void Player::store_board(const std::string& filename, int history_offset *//* =0 *//*) const{
+/*
+void Player::store_board(const std::string& filename, int history_offset) const{
     std::cout << "store_board called" << std::endl;
     if(history_offset < 0)
         throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
@@ -350,7 +356,6 @@ int Player::recurrence() const{
     std::cout << "recurrence called" << std::endl;
     return 0;
 }
-
 
 int main(){
     try {
