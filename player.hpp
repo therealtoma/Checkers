@@ -51,7 +51,7 @@ public:
 	 */
 	void store_board(const std::string& filename, int history_offset = 0) const;
 	
-	//create and store an initial board to file
+	// create the initial board, store it inside the most recent player memory cell and save it in the file
 	void init_board(const std::string& filename) const;
 	
 	/* 
@@ -88,16 +88,6 @@ public:
 	int recurrence() const;
 	
 private:
-
-	int player_nr; // the player number
-    int board_nr; // the number of boards
-
-	struct Impl{
-		Impl* next;
-		piece board[8][8];
-	};
-
-	typedef Impl* pImpl;
-
-	pImpl memory;
+    struct Impl;
+    Impl* pimpl;
 };
