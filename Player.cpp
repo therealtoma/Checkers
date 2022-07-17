@@ -1,92 +1,17 @@
 #include "player.hpp"
 #define BOARD_SIZE 8 * 8
 
-void fillInitialBoard(Player::piece* p){
-    // first row
-    p[BOARD_SIZE / 2 * 0 + 0] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 1] = Player::x;
-    p[BOARD_SIZE / 2 * 0 + 2] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 4] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 6] = Player::e;
-    p[BOARD_SIZE / 2 * 0 + 7] = Player::x;
+Player::piece** initialize_board(){
+    Player::piece **matrix = new Player::piece*[BOARD_SIZE / 2];
+    for(int i = 0; i < BOARD_SIZE / 2; i++)
+        matrix[i] = new Player::piece[BOARD_SIZE / 2];
 
-    //second row
-    p[BOARD_SIZE / 2 * 1 + 0] = Player::x;
-    p[BOARD_SIZE / 2 * 1 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 1 + 2] = Player::x;
-    p[BOARD_SIZE / 2 * 1 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 1 + 4] = Player::x;
-    p[BOARD_SIZE / 2 * 1 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 1 + 6] = Player::x;
-    p[BOARD_SIZE / 2 * 1 + 7] = Player::e;
-
-    // third row
-    p[BOARD_SIZE / 2 * 2 + 0] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 2] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 4] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 6] = Player::e;
-    p[BOARD_SIZE / 2 * 2 + 7] = Player::x;
-
-    // fourth row
-    p[BOARD_SIZE / 2 * 3 + 0] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 2] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 4] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 6] = Player::e;
-    p[BOARD_SIZE / 2 * 3 + 7] = Player::e;
-
-    // fifth row
-    p[BOARD_SIZE / 2 * 4 + 0] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 2] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 4] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 6] = Player::e;
-    p[BOARD_SIZE / 2 * 4 + 7] = Player::e;
-
-    // sixth row
-    p[BOARD_SIZE / 2 * 5 + 0] = Player::o;
-    p[BOARD_SIZE / 2 * 5 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 5 + 2] = Player::o;
-    p[BOARD_SIZE / 2 * 5 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 5 + 4] = Player::o;
-    p[BOARD_SIZE / 2 * 5 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 5 + 6] = Player::o;
-    p[BOARD_SIZE / 2 * 5 + 7] = Player::e;
-
-    // seventh row
-    p[BOARD_SIZE / 2 * 6 + 0] = Player::e;
-    p[BOARD_SIZE / 2 * 6 + 1] = Player::o;
-    p[BOARD_SIZE / 2 * 6 + 2] = Player::e;
-    p[BOARD_SIZE / 2 * 6 + 3] = Player::o;
-    p[BOARD_SIZE / 2 * 6 + 4] = Player::e;
-    p[BOARD_SIZE / 2 * 6 + 5] = Player::o;
-    p[BOARD_SIZE / 2 * 6 + 6] = Player::e;
-    p[BOARD_SIZE / 2 * 6 + 7] = Player::o;
-
-    // eith row
-    p[BOARD_SIZE / 2 * 7 + 0] = Player::o;
-    p[BOARD_SIZE / 2 * 7 + 1] = Player::e;
-    p[BOARD_SIZE / 2 * 7 + 2] = Player::o;
-    p[BOARD_SIZE / 2 * 7 + 3] = Player::e;
-    p[BOARD_SIZE / 2 * 7 + 4] = Player::o;
-    p[BOARD_SIZE / 2 * 7 + 5] = Player::e;
-    p[BOARD_SIZE / 2 * 7 + 6] = Player::o;
-    p[BOARD_SIZE / 2 * 7 + 7] = Player::e;
-
+    return matrix;
 }
 
 struct Player::Impl{
     Impl* next;
-    Player::piece* board; // the Dama board
+    Player::piece** board; // the Dama board
     int index; // the index of the board
     int player_nr; // the player number
 };
@@ -118,7 +43,11 @@ Player::~Player(){
     while(pimpl != nullptr){
         Impl* temp = pimpl; // saves the list address
         pimpl = pimpl->next; // goes to the next node
-        delete[] temp->board;
+        if(temp->board != nullptr) {
+            for (int i = 0; i < BOARD_SIZE / 2; i++)
+                delete[] temp->board[i];
+            delete[] temp->board;
+        }
         delete temp; // deletes the memory
     }
     delete pimpl; // deletes the last memory
@@ -143,10 +72,10 @@ Player::Player(const Player& copy){
         // saves the board
         thisMemory->index = copyMemory->index;
         thisMemory->player_nr = copyMemory->player_nr;
-        thisMemory->board = new piece[BOARD_SIZE];
-        for(int i = 0; i < BOARD_SIZE/2; i++){
-            for(int j = 0; j < BOARD_SIZE/2; j++){
-                thisMemory->board[i * BOARD_SIZE/2 + j] = copyMemory->board[i * BOARD_SIZE/2 + j];
+        thisMemory->board = initialize_board();
+        for(int i = 0; i < BOARD_SIZE / 2; i++){
+            for(int j = 0; j < BOARD_SIZE / 2; j++){
+                thisMemory->board[i][j] = copyMemory->board[i][j];
             }
         }
         thisMemory = thisMemory->next;
@@ -305,8 +234,9 @@ void Player::store_board(const std::string& filename, int history_offset *//* =0
 void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
-    Player::piece* initial_board = new piece[BOARD_SIZE];
-    fillInitialBoard(initial_board);
+    // Player::piece initial_board[BOARD_SIZE];
+    //Player::piece **initial_board = initialize_board();
+
     std::cout << "init_board ended" << std::endl;
 }
 
@@ -347,7 +277,7 @@ int main(){
         Player p1(0);
         Player p2(1);
 
-        p2.init_board("ciao");
+        // p2.init_board("ciao");
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
