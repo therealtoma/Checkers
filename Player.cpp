@@ -1,6 +1,21 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
 
+char convert(Player::piece p){
+    switch (p) {
+        case Player::piece::x:
+            return 'x';
+        case Player::piece::X:
+            return 'X';
+        case Player::piece::o:
+            return 'o';
+        case Player::piece::O:
+            return 'O';
+        case Player::piece::e:
+            return ' ';
+    }
+}
+
 Player::piece** initialize_board(){
     Player::piece** matrix = nullptr;
     matrix = new Player::piece*[BOARD_SIZE];
@@ -281,14 +296,20 @@ void Player::init_board(const std::string& filename) const{
         }
     }
 
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            std::cout << temp->board[i][j] << " ";
+    std::fstream file;
+    file.open(filename, std::fstream::out);
+
+    for(int i = BOARD_SIZE - 1; i >= 0; i--) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            file << convert(temp->board[i][j]);
+            if(j != BOARD_SIZE - 1) file << ' ';
         }
-        std::cout << std::endl;
+        if(i != 0)
+            file << "\n";
     }
 
-    // deletes the temporary board
+    file.close();
+    // deletes the temporary variables
     for(int i = 0; i < BOARD_SIZE; i++){
         delete[] initial_board[i];
         delete[] temp1->board[i];
