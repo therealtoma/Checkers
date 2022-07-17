@@ -1,10 +1,11 @@
 #include "player.hpp"
-#define BOARD_SIZE 8 * 8
+#define BOARD_SIZE 8
 
 Player::piece** initialize_board(){
-    Player::piece **matrix = new Player::piece*[BOARD_SIZE / 2];
-    for(int i = 0; i < BOARD_SIZE / 2; i++)
-        matrix[i] = new Player::piece[BOARD_SIZE / 2];
+    Player::piece** matrix = nullptr;
+    matrix = new Player::piece*[BOARD_SIZE];
+    for(int i = 0; i < BOARD_SIZE; i++)
+        matrix[i] = new Player::piece[BOARD_SIZE];
 
     return matrix;
 }
@@ -44,7 +45,7 @@ Player::~Player(){
         Impl* temp = pimpl; // saves the list address
         pimpl = pimpl->next; // goes to the next node
         if(temp->board != nullptr) {
-            for (int i = 0; i < BOARD_SIZE / 2; i++)
+            for (int i = 0; i < BOARD_SIZE; i++)
                 delete[] temp->board[i];
             delete[] temp->board;
         }
@@ -73,8 +74,8 @@ Player::Player(const Player& copy){
         thisMemory->index = copyMemory->index;
         thisMemory->player_nr = copyMemory->player_nr;
         thisMemory->board = initialize_board();
-        for(int i = 0; i < BOARD_SIZE / 2; i++){
-            for(int j = 0; j < BOARD_SIZE / 2; j++){
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++){
                 thisMemory->board[i][j] = copyMemory->board[i][j];
             }
         }
@@ -230,13 +231,71 @@ void Player::store_board(const std::string& filename, int history_offset *//* =0
     std::cout << "store_board ended" << std::endl;
 }*/
 
-// init board
+/**
+ * creates an initial board and stores it inside the first memory of the player and inside the file
+ * @param filename the file to to store the board into
+ */
 void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
-    // Player::piece initial_board[BOARD_SIZE];
-    //Player::piece **initial_board = initialize_board();
 
+    // allocates the memory
+    Player::piece **initial_board = initialize_board();
+
+    // fill starting board with the default field
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            if (i >= 0 && i <= 2)
+                ((i + j) % 2) == 0 ? initial_board[i][j] = piece::e : initial_board[i][j] = piece::x;
+            else if (i >= 5 && i <= 7)
+                ((i + j) % 2) == 0 ? initial_board[i][j] = piece::e : initial_board[i][j] = piece::o;
+            else
+                initial_board[i][j] = piece::e;
+        }
+    }
+
+    // goes to the end of the player memory
+    Impl* temp = this->pimpl;
+    int lastIndex = this->pimpl->index;
+    while(temp->next != nullptr) {
+        lastIndex = temp->index;
+        temp = temp->next;
+    }
+
+    Impl* temp1 = new Impl{
+        nullptr,
+        initialize_board(),
+        lastIndex,
+        this->pimpl->player_nr
+    };
+
+    temp->next = temp1->next;
+    temp->board = initialize_board();
+    temp->index = temp1->index;
+    temp->player_nr = temp1->player_nr;
+
+    // filling the board
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            temp->board[i][j] = initial_board[i][j];
+        }
+    }
+
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            std::cout << temp->board[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // deletes the temporary board
+    for(int i = 0; i < BOARD_SIZE; i++){
+        delete[] initial_board[i];
+        delete[] temp1->board[i];
+    }
+    delete[] temp1->board;
+    delete[] initial_board;
+    delete temp1;
     std::cout << "init_board ended" << std::endl;
 }
 
@@ -277,7 +336,7 @@ int main(){
         Player p1(0);
         Player p2(1);
 
-        // p2.init_board("ciao");
+         p2.init_board("ciao");
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
