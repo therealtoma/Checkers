@@ -88,9 +88,7 @@ Player::~Player(){
         Impl* temp = pimpl; // saves the list address
         pimpl = pimpl->next; // goes to the next node
         if(temp->board != nullptr) {
-            for (int i = 0; i < BOARD_SIZE; i++)
-                delete[] temp->board[i];
-            delete[] temp->board;
+            deleteBoard(temp->board);
         }
         delete temp; // deletes the memory
     }
@@ -174,7 +172,7 @@ void Player::load_board(const std::string& filename){
 
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
-
+    // goes to the end of the player list
     while(temp->next != nullptr) {
         lastIndex = temp->index;
         temp = temp->next;
@@ -192,28 +190,41 @@ void Player::load_board(const std::string& filename){
         if(cella != '\n'){
 
             board[i][j] = convertToPiece(cella);
-            j--;
-            i++;
+            std::cout << convertToChar(board[i][j]);
+            j++;
             readCharacters++;
-            if(j == BOARD_SIZE - 1){
+            if(j == BOARD_SIZE){
                 j = 0;
                 i--;
+                std::cout << std::endl;
             }
         }
         file.get(cella);
     }
-
-    if(readCharacters != BOARD_SIZE){
-        for(i = 0; i < BOARD_SIZE; i++)
-            delete[] board[i];
-        delete[] board;
-
-        throw player_exception{player_exception::invalid_board, "board not valid"};
-    }
-
-
     file.close();
 
+    if(readCharacters != BOARD_SIZE * BOARD_SIZE){
+
+       deleteBoard(board);
+
+       throw player_exception{player_exception::invalid_board, "board not valid"};
+    }
+
+    // adding the board to the last player memory
+
+    temp->board = initialize_board();
+    for(i = 0; i < BOARD_SIZE; i++){
+        for(j = 0; j < BOARD_SIZE; j++) {
+            temp->board[i][j] = board[i][j];
+        }
+    }
+    temp->next = nullptr;
+    temp->index= lastIndex;
+    temp->player_nr = this->pimpl->player_nr;
+
+    //deleteBoard(temp->board);
+    deleteBoard(board);
+    //delete temp1;
     std::cout << "load board ended" << std::endl;
 }
 
@@ -342,12 +353,9 @@ void Player::init_board(const std::string& filename) const{
 
     file.close();
     // deletes the temporary variables
-    for(int i = 0; i < BOARD_SIZE; i++){
-        delete[] initial_board[i];
-        delete[] temp1->board[i];
-    }
-    delete[] temp1->board;
-    delete[] initial_board;
+
+    deleteBoard(initial_board);
+    deleteBoard(temp1->board);
     delete temp1;
     std::cout << "init_board ended" << std::endl;
 }
@@ -388,8 +396,8 @@ int main(){
         Player p1(0);
         Player p2(1);
 
-         p2.init_board("ciao");
-         p1.load_board("ciai");
+         p2.init_board("ciao.txt");
+         p1.load_board("./ciao.txt");
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
