@@ -177,9 +177,9 @@ Player& operator=(const Player&){
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
-    if(this->pimpl->next == nullptr){
+    if(this->pimpl->next == nullptr)
         this->pimpl->board = initialize_board();
-    }
+
 
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
@@ -311,9 +311,9 @@ void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
 
-    if(this->pimpl->next == nullptr){
+    if(this->pimpl->next == nullptr)
         this->pimpl->board = initialize_board();
-    }
+
 
     // allocates the memory
     Player::piece **initial_board = initialize_board();
@@ -412,11 +412,11 @@ int main(){
 
 
         p1.init_board("./ciao.txt");
-        p2.init_board("./ciao2.txt");
-        //p2.init_board("./ciao.txt");
-        //p1.load_board("./ciao.txt");
-        //p2.load_board("./ciao.txt");
-        //p1.load_board("./ciao2.txt");
+        p1.init_board("./ciao2.txt");
+        p2.init_board("./ciao.txt");
+        p1.load_board("./ciao.txt");
+        p2.load_board("./ciao.txt");
+        p1.load_board("./ciao2.txt");
         Player p3(p1);
     }
     catch(player_exception& e){
