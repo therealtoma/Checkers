@@ -102,30 +102,37 @@ Player::~Player(){
  */
 Player::Player(const Player& copy){
     std::cout << "copy constructor called" << std::endl;
+    this->pimpl = new Impl{
+    nullptr,
+    initialize_board(),
+    copy.pimpl->index,
+copy.pimpl->player_nr
+    };
 
-    // allocates memory
-    this->pimpl = new Impl{ nullptr };
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            this->pimpl->board[i][j] = copy.pimpl->board[i][j];
+        }
+    }
 
-    Impl* thisMemory = this->pimpl; // saves the beginning of the list
-    Impl* copyMemory = copy.pimpl; // saves a copy of the copy memory
+    Impl* copyTemp = copy.pimpl;
+    Impl* thisTemp = this->pimpl;
 
-    // loops the copy
-    while(copyMemory){
-        // saves the board
-        thisMemory->index = copyMemory->index;
-        thisMemory->player_nr = copyMemory->player_nr;
-        thisMemory->board = initialize_board();
-        for(int i = 0; i < BOARD_SIZE; i++){
-            for(int j = 0; j < BOARD_SIZE; j++){
-                thisMemory->board[i][j] = copyMemory->board[i][j];
+    while(copyTemp->next) {
+        thisTemp->next = new Impl{
+            nullptr,
+            initialize_board(),
+            thisTemp->index + 1,
+            copyTemp->player_nr
+        };
+
+        for(int i = 0; i < BOARD_SIZE; i++) {
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                thisTemp->next->board[i][j] = copyTemp->next->board[i][j];
             }
         }
-        thisMemory = thisMemory->next;
-
-        if(copyMemory->next)
-            thisMemory = new Impl{nullptr};
-
-        copyMemory = copyMemory->next;
+        thisTemp = thisTemp->next;
+        copyTemp = copyTemp->next;
     }
 
     std::cout << "copy constructor ended" << std::endl;
@@ -173,7 +180,7 @@ void Player::load_board(const std::string& filename){
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
     // goes to the end of the player list
-    while(temp->next != nullptr) {
+    while(temp->next) {
         lastIndex = temp->index;
         temp = temp->next;
     }
@@ -211,16 +218,19 @@ void Player::load_board(const std::string& filename){
     }
 
     // adding the board to the last player memory
+    temp->next = new Impl{
+        nullptr,
+        initialize_board(),
+        lastIndex++,
+        this->pimpl->player_nr
+    };
+    temp = temp->next;
 
-    temp->board = initialize_board();
     for(i = 0; i < BOARD_SIZE; i++){
         for(j = 0; j < BOARD_SIZE; j++) {
             temp->board[i][j] = board[i][j];
         }
     }
-    temp->next = nullptr;
-    temp->index= lastIndex;
-    temp->player_nr = this->pimpl->player_nr;
 
     //deleteBoard(temp->board);
     deleteBoard(board);
@@ -323,7 +333,7 @@ void Player::init_board(const std::string& filename) const{
     Impl* temp1 = new Impl{
         nullptr,
         initialize_board(),
-        lastIndex,
+        lastIndex + 1,
         this->pimpl->player_nr
     };
 
@@ -396,8 +406,12 @@ int main(){
         Player p1(0);
         Player p2(1);
 
-         p2.init_board("ciao.txt");
-         p1.load_board("./ciao.txt");
+
+        p2.init_board("ciao.txt");
+        p1.init_board("./ciao.txt");
+        p1.load_board("./ciao.txt");
+        p1.load_board("./ciao2.txt");
+        Player p3(p1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
