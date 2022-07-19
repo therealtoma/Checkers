@@ -106,7 +106,7 @@ Player::Player(const Player& copy){
     nullptr,
     initialize_board(),
     copy.pimpl->index,
-copy.pimpl->player_nr
+        copy.pimpl->player_nr
     };
 
     for(int i = 0; i < BOARD_SIZE; i++) {
@@ -177,11 +177,15 @@ Player& operator=(const Player&){
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
+    if(this->pimpl->next == nullptr){
+        this->pimpl->board = initialize_board();
+    }
+
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
     // goes to the end of the player list
     while(temp->next) {
-        lastIndex = temp->index;
+        lastIndex++;
         temp = temp->next;
     }
 
@@ -221,7 +225,7 @@ void Player::load_board(const std::string& filename){
     temp->next = new Impl{
         nullptr,
         initialize_board(),
-        lastIndex++,
+        lastIndex+1,
         this->pimpl->player_nr
     };
     temp = temp->next;
@@ -307,6 +311,10 @@ void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
 
+    if(this->pimpl->next == nullptr){
+        this->pimpl->board = initialize_board();
+    }
+
     // allocates the memory
     Player::piece **initial_board = initialize_board();
 
@@ -325,22 +333,19 @@ void Player::init_board(const std::string& filename) const{
     // goes to the end of the player memory
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
-    while(temp->next != nullptr) {
-        lastIndex = temp->index;
+    // goes to the end of the player list
+    while(temp->next) {
+        lastIndex++;
         temp = temp->next;
     }
 
-    Impl* temp1 = new Impl{
+    temp->next = new Impl{
         nullptr,
         initialize_board(),
-        lastIndex + 1,
+        lastIndex+1,
         this->pimpl->player_nr
     };
-
-    temp->next = temp1->next;
-    temp->board = initialize_board();
-    temp->index = temp1->index;
-    temp->player_nr = temp1->player_nr;
+    temp = temp->next;
 
     // filling the board
     for(int i = 0; i < BOARD_SIZE; i++) {
@@ -365,8 +370,7 @@ void Player::init_board(const std::string& filename) const{
     // deletes the temporary variables
 
     deleteBoard(initial_board);
-    deleteBoard(temp1->board);
-    delete temp1;
+    //deleteBoard(temp1->board);
     std::cout << "init_board ended" << std::endl;
 }
 
@@ -403,14 +407,16 @@ int Player::recurrence() const{
 
 int main(){
     try {
-        Player p1(0);
+        Player p1(1);
         Player p2(1);
 
 
-        p2.init_board("ciao.txt");
         p1.init_board("./ciao.txt");
-        p1.load_board("./ciao.txt");
-        p1.load_board("./ciao2.txt");
+        p2.init_board("./ciao2.txt");
+        //p2.init_board("./ciao.txt");
+        //p1.load_board("./ciao.txt");
+        //p2.load_board("./ciao.txt");
+        //p1.load_board("./ciao2.txt");
         Player p3(p1);
     }
     catch(player_exception& e){
