@@ -242,66 +242,49 @@ void Player::load_board(const std::string& filename){
     std::cout << "load board ended" << std::endl;
 }
 
-
-// store board
-/*
+/**
+ * Saves to a file the histroy_offset'th board ( 0 = most recent and so on )
+ * @param filename the name of the file
+ * @param history_offset the number of the board
+ */
 void Player::store_board(const std::string& filename, int history_offset) const{
     std::cout << "store_board called" << std::endl;
-    if(history_offset < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
 
+    Impl* temp = this->pimpl;
+    int memorySize = 0;
 
-
-
-    pImpl it = this->memory;
-    int i = this->board_nr - 1;
-
-    while(i != history_offset){
-        it = it->next;
-        i--;
+    while(temp->next){
+        temp = temp->next;
+        memorySize++;
     }
 
-    pImpl nextNode = it->next;
-    it->next = new Impl{nextNode};
-    std::fstream file(filename);
-    std::string line;
-    int j = 7;
-    while(std::getline(file, line)){
-        // check the character and store it in the enum board
-        if(line.length() != 15) // the 8 cells plus the spaces between them
-            throw player_exception{player_exception::invalid_board, "the board is not valid"};
-        i = 0;
-        // loops the line skipping the spaces between the cells
-        for(int k = 0; k < 15; k+=2) {
-            char c = line.at(k);
-            switch (c) {
-                case ' ':
-                    it->board[i][j] = e;
-                    break;
-                case 'x':
-                    it->board[i][j] = x;
-                    break;
-                case 'X':
-                    it->board[i][j] = X;
-                    break;
-                case 'o':
-                    it->board[i][j] = o;
-                    break;
-                case 'O':
-                    it->board[i][j] = O;
-                    break;
-                default:
-                    throw player_exception{player_exception::missing_file, "There was a problem with the structure of the file, ending"};
-            }
-            i++;
+    if(history_offset >= memorySize)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+
+    int index = memorySize - 1;
+    temp = this->pimpl;
+
+    while(index != history_offset){
+        temp = temp->next;
+        index--;
+    }
+
+    std::fstream file;
+    file.open(filename, std::fstream::out);
+
+    for(int i = BOARD_SIZE - 1; i >= 0; i--) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            file << convertToChar(temp->board[i][j]);
+            if(j != BOARD_SIZE - 1) file << ' ';
         }
-        j--;
+        if(i != 0)
+            file << "\n";
     }
 
     file.close();
 
     std::cout << "store_board ended" << std::endl;
-}*/
+}
 
 /**
  * creates an initial board and stores it inside the first memory of the player and inside the file
@@ -417,6 +400,7 @@ int main(){
         p1.load_board("./ciao.txt");
         p2.load_board("./ciao.txt");
         p1.load_board("./ciao2.txt");
+        p1.store_board("test1.txt", 1);
         Player p3(p1);
     }
     catch(player_exception& e){
