@@ -69,8 +69,8 @@ Player::Player(int player_nr) {
     std::cout << "constructor called" << std::endl;
 
     //checks if player number is valid otherwise throws an exception
-    if (player_nr != 0 && player_nr != 1)
-        throw player_exception{player_exception::index_out_of_bounds, "The player can only be 0 or 1"};
+    if (player_nr != 1 && player_nr != 2)
+        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 0 or 1"};
 
     pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
@@ -391,7 +391,7 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(1);
+        Player p2(0);
 
 
         p1.init_board("./ciao.txt");
@@ -400,7 +400,7 @@ int main(){
         p1.load_board("./ciao.txt");
         p2.load_board("./ciao.txt");
         p1.load_board("./ciao2.txt");
-        p1.store_board("test1.txt", 1);
+        p1.store_board("test1.txt", 0);
         Player p3(p1);
     }
     catch(player_exception& e){
