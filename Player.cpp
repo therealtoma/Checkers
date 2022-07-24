@@ -234,7 +234,7 @@ void Player::load_board(const std::string& filename){
         temp->next = new Impl{
                 nullptr,
                 initialize_board(),
-                lat_index + 1,
+                last_index + 1,
                 this->pimpl->player_nr
         };
         temp = temp->next;
@@ -446,6 +446,7 @@ int main(){
         */
         p2 = p1;
         p2.store_board("./test1.txt", 0);
+        std::cout<< "test";
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
