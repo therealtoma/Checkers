@@ -163,11 +163,52 @@ Player::Player(const Player& copy){
 */
 
 // operator =
-/*
-Player& operator=(const Player&){
+Player& Player::operator=(const Player& p){
     std::cout << "operator= called" << std::endl;
+    while(this->pimpl){
+        Impl* temp = this->pimpl;
+        this->pimpl = this->pimpl->next;
+        if(temp->board != nullptr) {
+            deleteBoard(temp->board);
+        }
+        delete temp;
+    }
+    delete pimpl;
+    this->pimpl = new Impl{
+            nullptr,
+            initialize_board(),
+            p.pimpl->index,
+            p.pimpl->player_nr
+    };
+
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            this->pimpl->board[i][j] = p.pimpl->board[i][j];
+        }
+    }
+
+    Impl* copyTemp = p.pimpl;
+    Impl* thisTemp = this->pimpl;
+
+    while(copyTemp->next) {
+        thisTemp->next = new Impl{
+                nullptr,
+                initialize_board(),
+                thisTemp->index + 1,
+                copyTemp->player_nr
+        };
+
+        for(int i = 0; i < BOARD_SIZE; i++) {
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                thisTemp->next->board[i][j] = copyTemp->next->board[i][j];
+            }
+        }
+        thisTemp = thisTemp->next;
+        copyTemp = copyTemp->next;
+    }
+    std::cout << "operator= ended" << std::endl;
+    return *this;
 }
- */
 
 
 /**
@@ -405,7 +446,8 @@ int main(){
         p1.load_board("./ciao2.txt");
         p1.store_board("test1.txt", 0);
         */
-        Player p3(p1);
+        p2 = p1;
+        p2.store_board("./test1.txt", 0);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
