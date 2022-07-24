@@ -177,15 +177,25 @@ Player& operator=(const Player&){
 void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
-    if(this->pimpl->next == nullptr)
-        this->pimpl->board = initialize_board();
-
-
     Impl* temp = this->pimpl;
     int lastIndex = this->pimpl->index;
-    // goes to the end of the player list
-    while(temp->next) {
-        lastIndex++;
+
+    if(this->pimpl->board == nullptr){
+        this->pimpl->board = initialize_board();
+        temp = this->pimpl;
+    }
+    else{
+        // goes to the end of the player list
+        while(temp->next) {
+            lastIndex++;
+            temp = temp->next;
+        }
+        temp->next = new Impl{
+                nullptr,
+                initialize_board(),
+                lastIndex+1,
+                this->pimpl->player_nr
+        };
         temp = temp->next;
     }
 
@@ -220,15 +230,6 @@ void Player::load_board(const std::string& filename){
 
        throw player_exception{player_exception::invalid_board, "board not valid"};
     }
-
-    // adding the board to the last player memory
-    temp->next = new Impl{
-        nullptr,
-        initialize_board(),
-        lastIndex+1,
-        this->pimpl->player_nr
-    };
-    temp = temp->next;
 
     for(i = 0; i < BOARD_SIZE; i++){
         for(j = 0; j < BOARD_SIZE; j++) {
@@ -394,8 +395,8 @@ int main(){
         Player p2(2);
 
 
-        p1.init_board("./ciao.txt");
-        p1.init_board("./ciao2.txt");
+        p1.load_board("./ciao.txt");
+        p1.load_board("./ciao2.txt");
         /*
         p1.init_board("./ciao2.txt");
         p2.init_board("./ciao.txt");
