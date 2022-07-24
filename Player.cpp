@@ -70,7 +70,7 @@ Player::Player(int player_nr) {
 
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 1 && player_nr != 2)
-        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 0 or 1"};
+        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 1 or 2"};
 
     pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
@@ -294,10 +294,27 @@ void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
 
-    if(this->pimpl->next == nullptr)
+    Impl* temp = this->pimpl;
+    int lastIndex = this->pimpl->index;
+
+    if(this->pimpl->board == nullptr){
         this->pimpl->board = initialize_board();
-
-
+        temp = this->pimpl;
+    }
+    else{
+        // goes to the end of the player list
+        while(temp->next) {
+            lastIndex++;
+            temp = temp->next;
+        }
+        temp->next = new Impl{
+                nullptr,
+                initialize_board(),
+                lastIndex+1,
+                this->pimpl->player_nr
+        };
+        temp = temp->next;
+    }
     // allocates the memory
     Player::piece **initial_board = initialize_board();
 
@@ -312,23 +329,6 @@ void Player::init_board(const std::string& filename) const{
                 initial_board[i][j] = piece::e;
         }
     }
-
-    // goes to the end of the player memory
-    Impl* temp = this->pimpl;
-    int lastIndex = this->pimpl->index;
-    // goes to the end of the player list
-    while(temp->next) {
-        lastIndex++;
-        temp = temp->next;
-    }
-
-    temp->next = new Impl{
-        nullptr,
-        initialize_board(),
-        lastIndex+1,
-        this->pimpl->player_nr
-    };
-    temp = temp->next;
 
     // filling the board
     for(int i = 0; i < BOARD_SIZE; i++) {
@@ -391,16 +391,19 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(0);
+        Player p2(2);
 
 
         p1.init_board("./ciao.txt");
+        p1.init_board("./ciao2.txt");
+        /*
         p1.init_board("./ciao2.txt");
         p2.init_board("./ciao.txt");
         p1.load_board("./ciao.txt");
         p2.load_board("./ciao.txt");
         p1.load_board("./ciao2.txt");
         p1.store_board("test1.txt", 0);
+        */
         Player p3(p1);
     }
     catch(player_exception& e){
