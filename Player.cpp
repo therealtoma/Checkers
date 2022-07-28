@@ -234,7 +234,7 @@ void Player::load_board(const std::string& filename){
         temp->next = new Impl{
                 nullptr,
                 initialize_board(),
-                lat_index + 1,
+                last_index + 1,
                 this->pimpl->player_nr
         };
         temp = temp->next;
