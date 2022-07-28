@@ -1,7 +1,7 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
 
-char convertToChar(Player::piece p){
+char convert_to_char(Player::piece p){
     switch (p) {
         case Player::piece::x:
             return 'x';
@@ -17,7 +17,7 @@ char convertToChar(Player::piece p){
     return ' ';
 }
 
-Player::piece convertToPiece(char c){
+Player::piece convert_to_piece(char c){
     switch (c) {
         case 'x':
             return Player::piece::x;
@@ -33,7 +33,7 @@ Player::piece convertToPiece(char c){
     return Player::piece::e;
 }
 
-void deleteBoard(Player::piece** (&board)){
+void delete_board(Player::piece** (&board)){
     for(int i = 0; i < BOARD_SIZE; i++)
         delete[] board[i];
     delete[] board;
@@ -88,7 +88,7 @@ Player::~Player(){
         Impl* temp = pimpl; // saves the list address
         pimpl = pimpl->next; // goes to the next node
         if(temp->board != nullptr) {
-            deleteBoard(temp->board);
+            delete_board(temp->board);
         }
         delete temp; // deletes the memory
     }
@@ -115,24 +115,24 @@ Player::Player(const Player& copy){
         }
     }
 
-    Impl* copyTemp = copy.pimpl;
-    Impl* thisTemp = this->pimpl;
+    Impl* copy_temp = copy.pimpl;
+    Impl* this_temp = this->pimpl;
 
-    while(copyTemp->next) {
-        thisTemp->next = new Impl{
+    while(copy_temp->next) {
+        this_temp->next = new Impl{
             nullptr,
             initialize_board(),
-            thisTemp->index + 1,
-            copyTemp->player_nr
+            this_temp->index + 1,
+            copy_temp->player_nr
         };
 
         for(int i = 0; i < BOARD_SIZE; i++) {
             for(int j = 0; j < BOARD_SIZE; j++) {
-                thisTemp->next->board[i][j] = copyTemp->next->board[i][j];
+                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
             }
         }
-        thisTemp = thisTemp->next;
-        copyTemp = copyTemp->next;
+        this_temp = this_temp->next;
+        copy_temp = copy_temp->next;
     }
 
     std::cout << "copy constructor ended" << std::endl;
@@ -163,11 +163,52 @@ Player::Player(const Player& copy){
 */
 
 // operator =
-/*
-Player& operator=(const Player&){
+Player& Player::operator=(const Player& p){
     std::cout << "operator= called" << std::endl;
+    while(this->pimpl){
+        Impl* temp = this->pimpl;
+        this->pimpl = this->pimpl->next;
+        if(temp->board != nullptr) {
+            delete_board(temp->board);
+        }
+        delete temp;
+    }
+    delete pimpl;
+    this->pimpl = new Impl{
+            nullptr,
+            initialize_board(),
+            p.pimpl->index,
+            p.pimpl->player_nr
+    };
+
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            this->pimpl->board[i][j] = p.pimpl->board[i][j];
+        }
+    }
+
+    Impl* copy_temp = p.pimpl;
+    Impl* this_temp = this->pimpl;
+
+    while(copy_temp->next) {
+        this_temp->next = new Impl{
+                nullptr,
+                initialize_board(),
+                this_temp->index + 1,
+                copy_temp->player_nr
+        };
+
+        for(int i = 0; i < BOARD_SIZE; i++) {
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+            }
+        }
+        this_temp = this_temp->next;
+        copy_temp = copy_temp->next;
+    }
+    std::cout << "operator= ended" << std::endl;
+    return *this;
 }
- */
 
 
 /**
@@ -178,7 +219,7 @@ void Player::load_board(const std::string& filename){
     std::cout << "load board called" << std::endl;
 
     Impl* temp = this->pimpl;
-    int lastIndex = this->pimpl->index;
+    int last_index = this->pimpl->index;
 
     if(this->pimpl->board == nullptr){
         this->pimpl->board = initialize_board();
@@ -187,13 +228,13 @@ void Player::load_board(const std::string& filename){
     else{
         // goes to the end of the player list
         while(temp->next) {
-            lastIndex++;
+            last_index++;
             temp = temp->next;
         }
         temp->next = new Impl{
                 nullptr,
                 initialize_board(),
-                lastIndex+1,
+                lat_index + 1,
                 this->pimpl->player_nr
         };
         temp = temp->next;
@@ -205,15 +246,15 @@ void Player::load_board(const std::string& filename){
     std::fstream file(filename, std::fstream::in);
     Player::piece** board = initialize_board();
     char cella;
-    int readCharacters = 0, i = BOARD_SIZE - 1, j = 0;
+    int read_characters = 0, i = BOARD_SIZE - 1, j = 0;
 
     while(file.get(cella)) {
         if(cella != '\n'){
 
-            board[i][j] = convertToPiece(cella);
-            std::cout << convertToChar(board[i][j]);
+            board[i][j] = convert_to_piece(cella);
+            std::cout << convert_to_char(board[i][j]);
             j++;
-            readCharacters++;
+            read_characters++;
             if(j == BOARD_SIZE){
                 j = 0;
                 i--;
@@ -224,9 +265,9 @@ void Player::load_board(const std::string& filename){
     }
     file.close();
 
-    if(readCharacters != BOARD_SIZE * BOARD_SIZE){
+    if(read_characters!= BOARD_SIZE * BOARD_SIZE){
 
-       deleteBoard(board);
+       delete_board(board);
 
        throw player_exception{player_exception::invalid_board, "board not valid"};
     }
@@ -236,10 +277,8 @@ void Player::load_board(const std::string& filename){
             temp->board[i][j] = board[i][j];
         }
     }
+    delete_board(board);
 
-    //deleteBoard(temp->board);
-    deleteBoard(board);
-    //delete temp1;
     std::cout << "load board ended" << std::endl;
 }
 
@@ -252,17 +291,17 @@ void Player::store_board(const std::string& filename, int history_offset) const{
     std::cout << "store_board called" << std::endl;
 
     Impl* temp = this->pimpl;
-    int memorySize = 0;
+    int memory_size = 0;
 
     while(temp->next){
         temp = temp->next;
-        memorySize++;
+        memory_size++;
     }
 
-    if(history_offset >= memorySize)
+    if(history_offset >= memory_size)
         throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
 
-    int index = memorySize - 1;
+    int index = memory_size - 1;
     temp = this->pimpl;
 
     while(index != history_offset){
@@ -275,7 +314,7 @@ void Player::store_board(const std::string& filename, int history_offset) const{
 
     for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convertToChar(temp->board[i][j]);
+            file << convert_to_char(temp->board[i][j]);
             if(j != BOARD_SIZE - 1) file << ' ';
         }
         if(i != 0)
@@ -296,7 +335,7 @@ void Player::init_board(const std::string& filename) const{
     std::cout << "init_board called" << std::endl;
 
     Impl* temp = this->pimpl;
-    int lastIndex = this->pimpl->index;
+    int last_index = this->pimpl->index;
 
     if(this->pimpl->board == nullptr){
         this->pimpl->board = initialize_board();
@@ -305,13 +344,13 @@ void Player::init_board(const std::string& filename) const{
     else{
         // goes to the end of the player list
         while(temp->next) {
-            lastIndex++;
+            last_index++;
             temp = temp->next;
         }
         temp->next = new Impl{
                 nullptr,
                 initialize_board(),
-                lastIndex+1,
+                last_index + 1,
                 this->pimpl->player_nr
         };
         temp = temp->next;
@@ -343,7 +382,7 @@ void Player::init_board(const std::string& filename) const{
 
     for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convertToChar(temp->board[i][j]);
+            file << convert_to_char(temp->board[i][j]);
             if(j != BOARD_SIZE - 1) file << ' ';
         }
         if(i != 0)
@@ -353,7 +392,7 @@ void Player::init_board(const std::string& filename) const{
     file.close();
     // deletes the temporary variables
 
-    deleteBoard(initial_board);
+    delete_board(initial_board);
     //deleteBoard(temp1->board);
     std::cout << "init_board ended" << std::endl;
 }
@@ -405,7 +444,8 @@ int main(){
         p1.load_board("./ciao2.txt");
         p1.store_board("test1.txt", 0);
         */
-        Player p3(p1);
+        p2 = p1;
+        p2.store_board("./test1.txt", 0);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
