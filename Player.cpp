@@ -1,6 +1,10 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
-
+/**
+ * converts a piece into char
+ * @param p the piece to convert
+ * @return the converted character '0' in case of error
+ */
 char convert_to_char(Player::piece p){
     switch (p) {
         case Player::piece::x:
@@ -14,9 +18,14 @@ char convert_to_char(Player::piece p){
         case Player::piece::e:
             return ' ';
     }
-    return ' ';
+    return '0';
 }
 
+/**
+ * converts a piece into a string
+ * @param c the character to convert
+ * @return tha converted piece, e for default
+ */
 Player::piece convert_to_piece(char c){
     switch (c) {
         case 'x':
@@ -29,21 +38,16 @@ Player::piece convert_to_piece(char c){
             return Player::piece::O;
         case ' ':
             return Player::piece::e;
+        default:
+            break;
     }
     return Player::piece::e;
 }
 
-void delete_board(Player::piece** (&board)){
-    for(int i = 0; i < BOARD_SIZE; i++)
-        delete[] board[i];
-    delete[] board;
-}
-
-bool file_exists(const std::string& filename){
-    std::ifstream f(filename.c_str());
-    return f.good();
-}
-
+/**
+ * allocates the memory for a board
+ * @return the allocated board
+ */
 Player::piece** initialize_board(){
     Player::piece** matrix = nullptr;
     matrix = new Player::piece*[BOARD_SIZE];
@@ -53,15 +57,35 @@ Player::piece** initialize_board(){
     return matrix;
 }
 
+/**
+ * deallocates the memory for the passed board
+ * @param board the boad to deallocate
+ */
+void delete_board(Player::piece** (&board)){
+    for(int i = 0; i < BOARD_SIZE; i++)
+        delete[] board[i];
+    delete[] board;
+}
+
+/**
+ * checks whether a file exists
+ * @param filename the name of the file to check
+ * @return true if the file exists, false otherwise
+ */
+bool file_exists(const std::string& filename){
+    std::ifstream f(filename.c_str());
+    return f.good();
+}
+
 struct Player::Impl{
     Impl* next;
-    Player::piece** board; // the Dama board
+    Player::piece** board; // the dama board
     int index; // the index of the board
     int player_nr; // the player number
 };
 
 /**
- * @brief Construct a new Player object
+ * Construct a new Player object
  * @param player_nr the player number
  */
 Player::Player(int player_nr) {
@@ -78,7 +102,7 @@ Player::Player(int player_nr) {
 } // constructor
 
 /**
- * @brief Destroy the Player object
+ * Destroy the Player object
  */
 Player::~Player(){
     std::cout << "destructor called" << std::endl;
@@ -135,14 +159,20 @@ Player::Player(const Player& copy){
 
 } // copy constructor
 
-// operator ()
+/**
+ * gets the piece in position r, c in the history_offset's board, throws an exception if r, c or history_offset are not valid
+ * @param r the row of the piece to return
+ * @param c the column of the piece to return
+ * @param history_offset the board number ( 0 is the latest board inserted )
+ * @return the corresponding piece
+ */
 Player::piece Player::operator()(int r, int c, int history_offset) const{
 
-    // checkin if the row is whithin the range 0 <= r < BOARD_SIZE
+    // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(r >= BOARD_SIZE || r < 0)
         throw player_exception{player_exception::index_out_of_bounds, "The inserted row is not valid"};
 
-    // checkin if the row is whithin the range 0 <= r < BOARD_SIZE
+    // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(c >= BOARD_SIZE || c < 0)
         throw player_exception{player_exception::index_out_of_bounds, "The inserted column is not valid"};
 
@@ -158,7 +188,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
     if(history_offset >= memory_size)
         throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
 
-    // calcultaing the index of the chosen board
+    // calculating the index of the chosen board
     int index = memory_size - 1;
     temp = this->pimpl;
 
@@ -172,49 +202,55 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
 }
 
-// operator =
+/**
+ * puts the player p inside the caller player
+ * @param p the player to copy
+ * @return a reference to the updated player
+ */
 Player& Player::operator=(const Player& p){
     std::cout << "operator= called" << std::endl;
-    while(this->pimpl){
-        Impl* temp = this->pimpl;
-        this->pimpl = this->pimpl->next;
-        if(temp->board != nullptr) {
-            delete_board(temp->board);
+    // avoiding self assignment
+    if(&p != this) {
+        while (this->pimpl) {
+            Impl *temp = this->pimpl;
+            this->pimpl = this->pimpl->next;
+            if (temp->board != nullptr)
+                delete_board(temp->board);
+            delete temp;
         }
-        delete temp;
-    }
-    delete pimpl;
-    this->pimpl = new Impl{
-            nullptr,
-            initialize_board(),
-            p.pimpl->index,
-            p.pimpl->player_nr
-    };
-
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            this->pimpl->board[i][j] = p.pimpl->board[i][j];
-        }
-    }
-
-    Impl* copy_temp = p.pimpl;
-    Impl* this_temp = this->pimpl;
-
-    while(copy_temp->next) {
-        this_temp->next = new Impl{
+        delete pimpl;
+        this->pimpl = new Impl{
                 nullptr,
                 initialize_board(),
-                this_temp->index + 1,
-                copy_temp->player_nr
+                p.pimpl->index,
+                p.pimpl->player_nr
         };
 
-        for(int i = 0; i < BOARD_SIZE; i++) {
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                this->pimpl->board[i][j] = p.pimpl->board[i][j];
             }
         }
-        this_temp = this_temp->next;
-        copy_temp = copy_temp->next;
+
+        Impl *copy_temp = p.pimpl;
+        Impl *this_temp = this->pimpl;
+
+        while (copy_temp->next) {
+            this_temp->next = new Impl{
+                    nullptr,
+                    initialize_board(),
+                    this_temp->index + 1,
+                    copy_temp->player_nr
+            };
+
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+                }
+            }
+            this_temp = this_temp->next;
+            copy_temp = copy_temp->next;
+        }
     }
     return *this;
 }
@@ -287,11 +323,10 @@ void Player::load_board(const std::string& filename){
         }
     }
     delete_board(board);
-
 }
 
 /**
- * Saves to a file the histroy_offset'th board ( 0 = most recent and so on )
+ * Saves to a file the history_offset'th board ( 0 = most recent and so on )
  * @param filename the name of the file
  * @param history_offset the number of the board
  */
@@ -369,11 +404,11 @@ void Player::init_board(const std::string& filename) const{
     for(int i = 0; i < BOARD_SIZE; i++) {
         for (int j = 0; j < BOARD_SIZE; j++) {
             if (i >= 0 && i <= 2)
-                ((i + j) % 2) == 0 ? initial_board[i][j] = piece::e : initial_board[i][j] = piece::x;
-            else if (i >= 5 && i <= 7)
-                ((i + j) % 2) == 0 ? initial_board[i][j] = piece::e : initial_board[i][j] = piece::o;
+                ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::x;
+            else if (i >= 5)
+                ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
             else
-                initial_board[i][j] = piece::e;
+                initial_board[i][j] = Player::piece::e;
         }
     }
 
@@ -403,9 +438,21 @@ void Player::init_board(const std::string& filename) const{
     //deleteBoard(temp1->board);
 }
 
+/*
+ * make a move starting from the most recent board in the history.
+ * move one piece of this player, and possibly remove pieces of the other
+ * player if they have been eaten.
+ * The new board is appended at the end of the history.
+ * An empty move (no move) is not admissible: if an empty move is appended, the game
+ * is automatically lost.
+  */
 void Player::move(){
     std::cout << "move called" << std::endl;
 }
+/**
+ * compares the latest two boards and checks if the move is valid
+ * @return true if the move is valid, false otherwise
+ */
 bool Player::valid_move() const{
     std::cout << "valid_move called" << std::endl;
     return true;
@@ -431,22 +478,52 @@ void Player::pop(){
         temp->next = nullptr;
     }
 }
+
+/**
+ * checks if the player has won the game
+ * @param player_nr the player to check
+ * @return true if the player has won the game, false otherwise
+ */
 bool Player::wins(int player_nr) const{
     std::cout << "wins called" << std::endl;
     return true;
 }
+
+/**
+ * checks if the latest board has won the game
+ * @return true if the latest board has won the game, false otherwise
+ */
 bool Player::wins() const{
     std::cout << "wins called" << std::endl;
     return true;
 }
+
+/**
+ * checks if the selected player has lost the game
+ * @param player_nr the player to check
+ * @return true if the player has lost the game, false otherwise
+ */
 bool Player::loses(int player_nr) const{
     std::cout << "loses called" << std::endl;
     return true;
 }
+
+/**
+ * checks if the latest bord has lost the game
+ * @return true if the latest bord has lost the game, false otherwise
+ */
 bool Player::loses() const{
     std::cout << "loses called" << std::endl;
     return true;
 }
+
+/**
+ * return how many times the last board appeared in the past
+ * for example, if the history is A B C B D C B (where A,B,C,D are distinct boards and the most recent is 'B')
+ * then this function returns 3 because the most recent board (B) appears 3 times
+ * in the history
+ * @return the number of boards
+ */
 int Player::recurrence() const{
     std::cout << "recurrence called" << std::endl;
     return 0;
