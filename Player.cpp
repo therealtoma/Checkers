@@ -74,7 +74,6 @@ Player::Player(int player_nr) {
 
     pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
-    std::cout << "constructor ended" << std::endl;
 
 } // constructor
 
@@ -93,7 +92,6 @@ Player::~Player(){
         delete temp; // deletes the memory
     }
     delete pimpl; // deletes the last memory
-    std::cout << "destructor ended" << std::endl;
 } // destructor
 
 /**
@@ -135,7 +133,6 @@ Player::Player(const Player& copy){
         copy_temp = copy_temp->next;
     }
 
-    std::cout << "copy constructor ended" << std::endl;
 } // copy constructor
 
 // operator ()
@@ -219,7 +216,6 @@ Player& Player::operator=(const Player& p){
         this_temp = this_temp->next;
         copy_temp = copy_temp->next;
     }
-    std::cout << "operator= ended" << std::endl;
     return *this;
 }
 
@@ -292,7 +288,6 @@ void Player::load_board(const std::string& filename){
     }
     delete_board(board);
 
-    std::cout << "load board ended" << std::endl;
 }
 
 /**
@@ -336,7 +331,6 @@ void Player::store_board(const std::string& filename, int history_offset) const{
 
     file.close();
 
-    std::cout << "store_board ended" << std::endl;
 }
 
 /**
@@ -407,7 +401,6 @@ void Player::init_board(const std::string& filename) const{
 
     delete_board(initial_board);
     //deleteBoard(temp1->board);
-    std::cout << "init_board ended" << std::endl;
 }
 
 void Player::move(){
@@ -417,8 +410,18 @@ bool Player::valid_move() const{
     std::cout << "valid_move called" << std::endl;
     return true;
 }
+/**
+ * deletes the latest board in the player memory
+ */
 void Player::pop(){
     std::cout << "pop called" << std::endl;
+    Impl* temp = this->pimpl;
+    while(temp->next->next)
+        temp = temp->next;
+
+    delete_board(temp->next->board);
+    delete temp->next;
+    temp->next = nullptr;
 }
 bool Player::wins(int player_nr) const{
     std::cout << "wins called" << std::endl;
@@ -446,20 +449,11 @@ int main(){
         Player p1(1);
         Player p2(2);
 
+        p1.pop();
 
         p1.load_board("./ciao.txt");
         p1.load_board("./ciao2.txt");
         p1.init_board("./ciao2.txt");
-        /*
-        p2.init_board("./ciao.txt");
-        p1.load_board("./ciao.txt");
-        p2.load_board("./ciao.txt");
-        p1.load_board("./ciao2.txt");
-        p1.store_board("test1.txt", 0);
-        */
-        p2 = p1;
-        p2.store_board("./test1.txt", 0);
-
         std::cout << p1(0,0,1);
     }
     catch(player_exception& e){
