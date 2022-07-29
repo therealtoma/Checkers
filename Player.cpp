@@ -415,13 +415,21 @@ bool Player::valid_move() const{
  */
 void Player::pop(){
     std::cout << "pop called" << std::endl;
-    Impl* temp = this->pimpl;
-    while(temp->next->next)
-        temp = temp->next;
-
-    delete_board(temp->next->board);
-    delete temp->next;
-    temp->next = nullptr;
+    if(this->pimpl->next == nullptr){
+        if(this->pimpl->board == nullptr)
+            throw player_exception{player_exception::index_out_of_bounds, "The board is empty"};
+        delete_board(this->pimpl->board);
+        this->pimpl->board = nullptr;
+    }
+    else {
+        Impl* temp = this->pimpl;
+        while(temp->next->next != nullptr)
+            temp = temp->next;
+        if(temp->next->board != nullptr)
+            delete_board(temp->next->board);
+        delete temp->next;
+        temp->next = nullptr;
+    }
 }
 bool Player::wins(int player_nr) const{
     std::cout << "wins called" << std::endl;
@@ -448,13 +456,14 @@ int main(){
     try {
         Player p1(1);
         Player p2(2);
-
+        p1.init_board("./ciao.txt");
+        p1.init_board("./ciao2.txt");
         p1.pop();
 
-        p1.load_board("./ciao.txt");
-        p1.load_board("./ciao2.txt");
-        p1.init_board("./ciao2.txt");
-        std::cout << p1(0,0,1);
+        //p1.load_board("./ciao.txt");
+        //p1.load_board("./ciao2.txt");
+        //p1.init_board("./ciao2.txt");
+        //std::cout << p1(0,0,1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
