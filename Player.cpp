@@ -97,7 +97,7 @@ Player::~Player(){
 } // destructor
 
 /**
- * @brief Copy constructor
+ * Copy constructor
  * @param copy the other player
  */
 Player::Player(const Player& copy){
@@ -139,28 +139,41 @@ Player::Player(const Player& copy){
 } // copy constructor
 
 // operator ()
-/*Player::piece Player::operator()(int r, int c, int history_offset) const{
-    if(r < 0 || r > 7 || c < 0 || c > 7)
-        throw player_exception{player_exception::index_out_of_bounds, "coordinates not valid"};
+Player::piece Player::operator()(int r, int c, int history_offset) const{
 
-    if(history_offset < 0 || history_offset > this->board_nr)
-        throw player_exception{player_exception::index_out_of_bounds, "the board number is not valid"};
+    // checkin if the row is whithin the range 0 <= r < BOARD_SIZE
+    if(r >= BOARD_SIZE || r < 0)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted row is not valid"};
 
-    // sets a temporary board to use in the loop
-    pImpl tempBoard = this->memory;
-    // loops the boards
-    while(history_offset >= 0){
-        if(history_offset == 0)
-            return this->memory->board[r][c]; // returns the history_offsetTH piece in position r, c
-        tempBoard = tempBoard->next;
-        history_offset--;
+    // checkin if the row is whithin the range 0 <= r < BOARD_SIZE
+    if(c >= BOARD_SIZE || c < 0)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted column is not valid"};
+
+    Impl* temp = this->pimpl;
+    int memory_size = 0;
+    // calculating memory size
+    while(temp->next){
+        temp = temp->next;
+        memory_size++;
     }
-    std::cout << "operator() called " << std::endl;
-    return e; // used as escape value
+
+    // checking history_offset validity
+    if(history_offset >= memory_size)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+
+    // calcultaing the index of the chosen board
+    int index = memory_size - 1;
+    temp = this->pimpl;
+
+    // going to the chosen board
+    while(index != history_offset){
+        temp = temp->next;
+        index--;
+    }
+
+    return temp->board[r][c];
 
 }
-
-*/
 
 // operator =
 Player& Player::operator=(const Player& p){
@@ -436,8 +449,8 @@ int main(){
 
         p1.load_board("./ciao.txt");
         p1.load_board("./ciao2.txt");
-        /*
         p1.init_board("./ciao2.txt");
+        /*
         p2.init_board("./ciao.txt");
         p1.load_board("./ciao.txt");
         p2.load_board("./ciao.txt");
@@ -446,6 +459,8 @@ int main(){
         */
         p2 = p1;
         p2.store_board("./test1.txt", 0);
+
+        std::cout << p1(0,0,1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
