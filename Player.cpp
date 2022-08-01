@@ -102,6 +102,87 @@ struct Move{
         }
         return valid_positions;
     }
+
+    void append(std::pair<int, int> element, std::pair<int, int>* &array, int &array_size){
+        array_size++;
+        auto new_array = new std::pair<int, int>[array_size];
+        for(int i = 0; i < array_size - 1 ; i++)
+            new_array[i] = array[i];
+        new_array[array_size - 1] = element;
+        delete[] array;
+        array = new_array;
+    }
+
+    // find available moves
+    std::pair<int, int>* get_available_moves(std::pair<int, int> position, Player::piece** board) {
+        int available_moves_number = 0;
+        auto available_moves = new std::pair<int, int>[available_moves_number];
+        Player::piece piece = board[position.first][position.second];
+
+        if(piece == Player::piece::X || piece == Player::piece::O) {
+            if(position.first == 0) {
+                switch (position.second) {
+                    case 0:
+                        // check if it can go top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        //  chech if it can go bottom-right
+                        break;
+                    default:
+                        //it can go either top-right or bottom-right
+                        break;
+                }
+            }
+            else if ( position.first == BOARD_SIZE - 1) {
+                switch (position.second){
+                    case 0:
+                        // can go top-left
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left
+                        break;
+                    default:
+                        // can go either top-left or bottom-left
+                        break;
+                }
+            }
+            else {
+                switch (position.second) {
+                    case 0:
+                        // can go top-left or top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left or bottom-right
+                        break;
+                    default:
+                        // can go any way
+                        break;
+                }
+            }
+        }
+        return available_moves;
+    }
+
+    /*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    arr_size++;
+            }
+        }
+
+        auto valid_positions = new std::pair<std::pair<int, int>, int>[arr_size];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(std::make_pair(i, j), 0);
+            }
+        }
+        return valid_positions;
+    }*/
+
 };
 // end struct Move code
 struct Player::Impl{
@@ -116,7 +197,6 @@ struct Player::Impl{
  * @param player_nr the player number
  */
 Player::Player(int player_nr) {
-
     std::cout << "constructor called" << std::endl;
 
     //checks if player number is valid otherwise throws an exception
