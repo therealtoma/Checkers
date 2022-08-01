@@ -76,7 +76,35 @@ bool file_exists(const std::string& filename){
     std::ifstream f(filename.c_str());
     return f.good();
 }
+// struct Move code
+struct Move{
+    std::pair<int, int> current_position;
+    std::pair<int, int>* available_moves;
+    std::pair<std::pair<int, int>, int>* evaluations;
+    Player::piece piece;
 
+    std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        int number_of_found_pieces = 0;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    number_of_found_pieces++;
+            }
+        }
+
+        auto valid_positions = new std::pair<int, int>[number_of_found_pieces];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(i, j);
+            }
+        }
+        return valid_positions;
+    }
+};
+// end struct Move code
 struct Player::Impl{
     Impl* next;
     Player::piece** board; // the dama board
@@ -448,6 +476,9 @@ void Player::init_board(const std::string& filename) const{
   */
 void Player::move(){
     std::cout << "move called" << std::endl;
+    Move moves;
+    moves.available_moves = moves.get_available_pieces(1, this->pimpl->board);
+    delete[] moves.available_moves;
 }
 /**
  * compares the latest two boards and checks if the move is valid
@@ -534,6 +565,7 @@ int main(){
         Player p1(1);
         Player p2(2);
         p1.init_board("./ciao.txt");
+        p1.move();
         p1.init_board("./ciao2.txt");
         p1.pop();
 
