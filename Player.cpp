@@ -83,18 +83,17 @@ struct Move{
     std::pair<std::pair<int, int>, int>* evaluations;
     Player::piece piece;
 
-    std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board){
+    std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board, int &arr_size){
         Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
         Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
-        int number_of_found_pieces = 0;
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-                    number_of_found_pieces++;
+                    arr_size++;
             }
         }
 
-        auto valid_positions = new std::pair<int, int>[number_of_found_pieces];
+        auto valid_positions = new std::pair<int, int>[arr_size];
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
@@ -476,9 +475,12 @@ void Player::init_board(const std::string& filename) const{
   */
 void Player::move(){
     std::cout << "move called" << std::endl;
-    Move moves;
-    moves.available_moves = moves.get_available_pieces(1, this->pimpl->board);
-    delete[] moves.available_moves;
+    Move temp_moves;
+    int arr_size = 0;
+    auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
+    std::cout << "arr_size: " << arr_size << std::endl;
+    //Move* moves_list = new Move[arr_size];
+    delete[] available_pieces;
 }
 /**
  * compares the latest two boards and checks if the move is valid
