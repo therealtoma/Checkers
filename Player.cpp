@@ -231,38 +231,42 @@ Player::~Player(){
  */
 Player::Player(const Player& copy){
     std::cout << "copy constructor called" << std::endl;
-    this->pimpl = new Impl{
-    nullptr,
-    initialize_board(),
-    copy.pimpl->index,
-        copy.pimpl->player_nr
-    };
-
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            this->pimpl->board[i][j] = copy.pimpl->board[i][j];
-        }
-    }
-
-    Impl* copy_temp = copy.pimpl;
-    Impl* this_temp = this->pimpl;
-
-    while(copy_temp->next) {
-        this_temp->next = new Impl{
-            nullptr,
-            initialize_board(),
-            this_temp->index + 1,
-            copy_temp->player_nr
+    if(copy.pimpl->board != nullptr) {
+        this->pimpl = new Impl{
+                nullptr,
+                initialize_board(),
+                copy.pimpl->index,
+                copy.pimpl->player_nr
         };
 
-        for(int i = 0; i < BOARD_SIZE; i++) {
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                this->pimpl->board[i][j] = copy.pimpl->board[i][j];
             }
         }
-        this_temp = this_temp->next;
-        copy_temp = copy_temp->next;
+
+        Impl *copy_temp = copy.pimpl;
+        Impl *this_temp = this->pimpl;
+
+        while (copy_temp->next) {
+            this_temp->next = new Impl{
+                    nullptr,
+                    initialize_board(),
+                    this_temp->index + 1,
+                    copy_temp->player_nr
+            };
+
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+                }
+            }
+            this_temp = this_temp->next;
+            copy_temp = copy_temp->next;
+        }
     }
+    else
+        this->pimpl = new Impl{nullptr, nullptr, copy.pimpl->index, copy.pimpl->player_nr};
 
 } // copy constructor
 
@@ -645,7 +649,7 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-
+        Player p2(p1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
