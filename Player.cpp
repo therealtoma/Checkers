@@ -76,7 +76,115 @@ bool file_exists(const std::string& filename){
     std::ifstream f(filename.c_str());
     return f.good();
 }
+// struct Move code
+struct Move{
+    std::pair<int, int> current_position;
+    std::pair<int, int>* available_moves;
+    std::pair<std::pair<int, int>, int>* evaluations;
+    Player::piece piece;
 
+    std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board, int &arr_size){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    arr_size++;
+            }
+        }
+
+        auto valid_positions = new std::pair<int, int>[arr_size];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(i, j);
+            }
+        }
+        return valid_positions;
+    }
+
+    void append(std::pair<int, int> element, std::pair<int, int>* &array, int &array_size){
+        array_size++;
+        auto new_array = new std::pair<int, int>[array_size];
+        for(int i = 0; i < array_size - 1 ; i++)
+            new_array[i] = array[i];
+        new_array[array_size - 1] = element;
+        delete[] array;
+        array = new_array;
+    }
+
+    // find available moves
+    std::pair<int, int>* get_available_moves(std::pair<int, int> position, Player::piece** board) {
+        int available_moves_number = 0;
+        auto available_moves = new std::pair<int, int>[available_moves_number];
+        Player::piece piece = board[position.first][position.second];
+
+        if(piece == Player::piece::X || piece == Player::piece::O) {
+            if(position.first == 0) {
+                switch (position.second) {
+                    case 0:
+                        // check if it can go top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        //  chech if it can go bottom-right
+                        break;
+                    default:
+                        //it can go either top-right or bottom-right
+                        break;
+                }
+            }
+            else if ( position.first == BOARD_SIZE - 1) {
+                switch (position.second){
+                    case 0:
+                        // can go top-left
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left
+                        break;
+                    default:
+                        // can go either top-left or bottom-left
+                        break;
+                }
+            }
+            else {
+                switch (position.second) {
+                    case 0:
+                        // can go top-left or top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left or bottom-right
+                        break;
+                    default:
+                        // can go any way
+                        break;
+                }
+            }
+        }
+        return available_moves;
+    }
+
+    /*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    arr_size++;
+            }
+        }
+
+        auto valid_positions = new std::pair<std::pair<int, int>, int>[arr_size];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(std::make_pair(i, j), 0);
+            }
+        }
+        return valid_positions;
+    }*/
+
+};
+// end struct Move code
 struct Player::Impl{
     Impl* next;
     Player::piece** board; // the dama board
@@ -89,7 +197,6 @@ struct Player::Impl{
  * @param player_nr the player number
  */
 Player::Player(int player_nr) {
-
     std::cout << "constructor called" << std::endl;
 
     //checks if player number is valid otherwise throws an exception
@@ -448,6 +555,12 @@ void Player::init_board(const std::string& filename) const{
   */
 void Player::move(){
     std::cout << "move called" << std::endl;
+    Move temp_moves;
+    int arr_size = 0;
+    auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
+    std::cout << "arr_size: " << arr_size << std::endl;
+    //Move* moves_list = new Move[arr_size];
+    delete[] available_pieces;
 }
 /**
  * compares the latest two boards and checks if the move is valid
@@ -532,15 +645,7 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(2);
-        p1.init_board("./ciao.txt");
-        p1.init_board("./ciao2.txt");
-        p1.pop();
 
-        //p1.load_board("./ciao.txt");
-        //p1.load_board("./ciao2.txt");
-        //p1.init_board("./ciao2.txt");
-        //std::cout << p1(0,0,1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
