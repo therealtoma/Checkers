@@ -645,16 +645,7 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(2);
-        p1.init_board("./ciao.txt");
-        p1.move();
-        p1.init_board("./ciao2.txt");
-        p1.pop();
 
-        //p1.load_board("./ciao.txt");
-        //p1.load_board("./ciao2.txt");
-        //p1.init_board("./ciao2.txt");
-        //std::cout << p1(0,0,1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
