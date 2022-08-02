@@ -289,6 +289,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
     Impl* temp = this->pimpl;
     int memory_size = 0;
+    (this->pimpl->board != nullptr) ? memory_size = 1 : throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
     // calculating memory size
     while(temp->next){
         temp = temp->next;
@@ -408,20 +409,18 @@ void Player::load_board(const std::string& filename){
         if(cella != '\n'){
 
             board[i][j] = convert_to_piece(cella);
-            std::cout << convert_to_char(board[i][j]);
             j++;
             read_characters++;
             if(j == BOARD_SIZE){
                 j = 0;
                 i--;
-                std::cout << std::endl;
             }
         }
         file.get(cella);
     }
     file.close();
 
-    if(read_characters!= BOARD_SIZE * BOARD_SIZE){
+    if(read_characters + 1 != BOARD_SIZE * BOARD_SIZE){
 
        delete_board(board);
 
@@ -649,7 +648,10 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(p1);
+        p1.load_board("./test1.txt");
+        p1.load_board("./test1.txt");
+        p1.load_board("./test1.txt");
+        std::cout << p1(7, 6,3) << std::endl;
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
