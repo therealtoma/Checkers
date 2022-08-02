@@ -649,7 +649,9 @@ int main(){
     try {
         Player p1(1);
         p1.load_board("./test1.txt");
-        std::cout << p1(7, 6,1) << std::endl;
+        p1.load_board("./test1.txt");
+        p1.load_board("./test1.txt");
+        std::cout << p1(7, 6,3) << std::endl;
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
