@@ -84,10 +84,21 @@ struct Move{
     std::pair<int, int>* available_moves;
     std::pair<std::pair<int, int>, int>* evaluations;
     Player::piece piece;
-
+    /**
+     * gets an array of pair of all the positions of a specific piece of a specific board of a specific player
+     * @param player_nr the player number
+     * @param board the board to chekc
+     * @param arr_size the size of the returned array
+     * @return an array of pair with the positions
+     * @throws player_exception::board_not_valid if the board is not valid
+     * @throws player_exception::index_out_of_bounds in case the player number is not valid
+     */
     std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board, int &arr_size){
+        // getting the pieces to find based on the player number
         Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
         Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+
+        // finding the number of pieces to insert
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
@@ -95,13 +106,17 @@ struct Move{
             }
         }
 
+        // creating the array
         auto valid_positions = new std::pair<int, int>[arr_size];
+
+        // filling the array
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
                     valid_positions[i] = std::make_pair(i, j);
             }
         }
+        // returning the array
         return valid_positions;
     }
 
