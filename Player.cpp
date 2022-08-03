@@ -20,7 +20,7 @@ char convert_to_char(Player::piece p){
         case Player::piece::e:
             return ' ';
     }
-    throw player_exception{player_exception::invalid_board, "The insered piece is not valid"};
+    throw player_exception{player_exception::invalid_board, "EXCEPTION: The insered piece is not valid"};
 }
 
 /**
@@ -43,7 +43,7 @@ Player::piece convert_to_piece(char c){
         default:
             break;
     }
-    throw player_exception{player_exception::invalid_board, "The inserted haracter is not valid"};
+    throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted haracter is not valid"};
 }
 
 /**
@@ -203,7 +203,7 @@ Player::Player(int player_nr) {
 
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 1 && player_nr != 2)
-        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 1 or 2"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The player number can only be 1 or 2. Received " + std::to_string(player_nr)};
 
     pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
@@ -283,11 +283,11 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
     // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(r >= BOARD_SIZE || r < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted row is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted row is not valid. Reveived " + std::to_string(r)};
 
     // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(c >= BOARD_SIZE || c < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted column is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted column is not valid. Received " + std::to_string(c)};
 
     Impl* temp = this->pimpl;
     int memory_size = 0;
@@ -300,7 +300,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
     // checking history_offset validity
     if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
     // calculating the index of the chosen board
     int index = memory_size - 1;
@@ -400,7 +400,7 @@ void Player::load_board(const std::string& filename){
     }
 
     if(!file_exists(filename))
-        throw player_exception{player_exception::missing_file, "file not found"};
+        throw player_exception{player_exception::missing_file, "EXCEPTION: file " + filename + " does not exist"};
 
     std::fstream file(filename, std::fstream::in);
     Player::piece** board = initialize_board();
@@ -413,13 +413,13 @@ void Player::load_board(const std::string& filename){
             if(i < 0) {
                 delete_board(board);
                 throw player_exception{player_exception::invalid_board,
-                                       "the board containes more values than it should."};
+                                       "EXCEPTION: the board (" + filename + ") containes more values than it should."};
             }
             // a piece is in the white space
             if((i + j) % 2 == 0 && cella != ' ') {
                 delete_board(board);
                 throw player_exception{player_exception::invalid_board,
-                                       "there's a piece in a not allowed space"};
+                                       "EXCEPTION: there's a piece in a not allowed space. Reading file " + filename};
             }
             // counts the number of o's and x's
             if(cella == 'o' || cella == 'O') count_o++;
@@ -444,12 +444,12 @@ void Player::load_board(const std::string& filename){
 
     if(count_x > NUMBER_OF_x){
         delete_board(board);
-        throw player_exception{player_exception::invalid_board, "there are too many x pieces in the board"};
+        throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many x pieces in the board (" + filename + ")"};
     }
 
     if(count_o > NUMBER_OF_o){
         delete_board(board);
-        throw player_exception{player_exception::invalid_board, "there are too many o pieces in the board"};
+        throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many o pieces in the board (" + filename + ")"};
     }
 
     for(i = 0; i < BOARD_SIZE; i++){
@@ -477,7 +477,7 @@ void Player::store_board(const std::string& filename, int history_offset) const{
     }
 
     if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
     int index = memory_size - 1;
     temp = this->pimpl;
@@ -576,7 +576,7 @@ void Player::pop(){
     std::cout << "pop called" << std::endl;
     if(this->pimpl->next == nullptr){
         if(this->pimpl->board == nullptr)
-            throw player_exception{player_exception::index_out_of_bounds, "The board is empty"};
+            throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The board is empty"};
         delete_board(this->pimpl->board);
         this->pimpl->board = nullptr;
     }
