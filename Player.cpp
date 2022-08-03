@@ -1,5 +1,7 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
+#define NUMBER_OF_x 12
+#define NUMBER_OF_o 12
 /**
  * converts a piece into char
  * @param p the piece to convert
@@ -403,10 +405,25 @@ void Player::load_board(const std::string& filename){
     std::fstream file(filename, std::fstream::in);
     Player::piece** board = initialize_board();
     char cella;
-    int read_characters = 0, i = BOARD_SIZE - 1, j = 0;
+    int read_characters = 0, i = BOARD_SIZE - 1, j = 0, count_x = 0, count_o = 0;
 
     while(file.get(cella)) {
         if(cella != '\n'){
+            // the file containes too many characters
+            if(i < 0) {
+                delete_board(board);
+                throw player_exception{player_exception::invalid_board,
+                                       "the board containes more values than it should."};
+            }
+            // a piece is in the white space
+            if((i + j) % 2 == 0 && cella != ' ') {
+                delete_board(board);
+                throw player_exception{player_exception::invalid_board,
+                                       "there's a piece in a not allowed space"};
+            }
+            // counts the number of o's and x's
+            if(cella == 'o' || cella == 'O') count_o++;
+            if(cella == 'x' || cella == 'X') count_x++;
 
             board[i][j] = convert_to_piece(cella);
             j++;
@@ -420,11 +437,19 @@ void Player::load_board(const std::string& filename){
     }
     file.close();
 
-    if(read_characters + 1 != BOARD_SIZE * BOARD_SIZE){
-
+    if(read_characters != BOARD_SIZE * BOARD_SIZE){
        delete_board(board);
-
        throw player_exception{player_exception::invalid_board, "board not valid"};
+    }
+
+    if(count_x > NUMBER_OF_x){
+        delete_board(board);
+        throw player_exception{player_exception::invalid_board, "there are too many x pieces in the board"};
+    }
+
+    if(count_o > NUMBER_OF_o){
+        delete_board(board);
+        throw player_exception{player_exception::invalid_board, "there are too many y pieces in the board"};
     }
 
     for(i = 0; i < BOARD_SIZE; i++){
@@ -486,27 +511,6 @@ void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
 
-    Impl* temp = this->pimpl;
-    int last_index = this->pimpl->index;
-
-    if(this->pimpl->board == nullptr){
-        this->pimpl->board = initialize_board();
-        temp = this->pimpl;
-    }
-    else{
-        // goes to the end of the player list
-        while(temp->next) {
-            last_index++;
-            temp = temp->next;
-        }
-        temp->next = new Impl{
-                nullptr,
-                initialize_board(),
-                last_index + 1,
-                this->pimpl->player_nr
-        };
-        temp = temp->next;
-    }
     // allocates the memory
     Player::piece **initial_board = initialize_board();
 
@@ -515,17 +519,10 @@ void Player::init_board(const std::string& filename) const{
         for (int j = 0; j < BOARD_SIZE; j++) {
             if (i >= 0 && i <= 2)
                 ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::x;
-            else if (i >= 5)
+            else if (i >= 5 && i <= 7)
                 ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
             else
                 initial_board[i][j] = Player::piece::e;
-        }
-    }
-
-    // filling the board
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            temp->board[i][j] = initial_board[i][j];
         }
     }
 
@@ -534,8 +531,8 @@ void Player::init_board(const std::string& filename) const{
 
     for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convert_to_char(temp->board[i][j]);
-            if(j != BOARD_SIZE - 1) file << ' ';
+            file << convert_to_char(initial_board[i][j]);
+            if(j != BOARD_SIZE - 1) file << " ";
         }
         if(i != 0)
             file << "\n";
@@ -545,7 +542,6 @@ void Player::init_board(const std::string& filename) const{
     // deletes the temporary variables
 
     delete_board(initial_board);
-    //deleteBoard(temp1->board);
 }
 
 /*
@@ -648,10 +644,9 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        p1.load_board("./test1.txt");
-        p1.load_board("./test1.txt");
-        p1.load_board("./test1.txt");
-        std::cout << p1(7, 6,3) << std::endl;
+        // p1.init_board("./stored_board.txt");
+        p1.load_board("./stored_board.txt");
+        //p1.store_board("./stored_board.txt", 1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
