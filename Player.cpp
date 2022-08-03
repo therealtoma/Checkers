@@ -20,7 +20,7 @@ char convert_to_char(Player::piece p){
         case Player::piece::e:
             return ' ';
     }
-    return '0';
+    throw player_exception{player_exception::invalid_board, "The insered piece is not valid"};
 }
 
 /**
@@ -43,7 +43,7 @@ Player::piece convert_to_piece(char c){
         default:
             break;
     }
-    return Player::piece::e;
+    throw player_exception{player_exception::invalid_board, "The inserted haracter is not valid"};
 }
 
 /**
@@ -439,7 +439,7 @@ void Player::load_board(const std::string& filename){
 
     if(read_characters != BOARD_SIZE * BOARD_SIZE){
        delete_board(board);
-       throw player_exception{player_exception::invalid_board, "board not valid"};
+       throw player_exception{player_exception::invalid_board, "EXCEPTION: the selected board (" + filename+ ") is not valid. The problem is about it's size."};
     }
 
     if(count_x > NUMBER_OF_x){
@@ -449,7 +449,7 @@ void Player::load_board(const std::string& filename){
 
     if(count_o > NUMBER_OF_o){
         delete_board(board);
-        throw player_exception{player_exception::invalid_board, "there are too many y pieces in the board"};
+        throw player_exception{player_exception::invalid_board, "there are too many o pieces in the board"};
     }
 
     for(i = 0; i < BOARD_SIZE; i++){
@@ -644,7 +644,7 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        // p1.init_board("./stored_board.txt");
+        //p1.init_board("./stored_board.txt");
         p1.load_board("./stored_board.txt");
         //p1.store_board("./stored_board.txt", 1);
     }
