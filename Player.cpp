@@ -119,22 +119,35 @@ struct Move{
         // returning the array
         return valid_positions;
     }
-
-    void append(std::pair<int, int> element, std::pair<int, int>* &array, int &array_size){
-        array_size++;
-        auto new_array = new std::pair<int, int>[array_size];
-        for(int i = 0; i < array_size - 1 ; i++)
-            new_array[i] = array[i];
-        new_array[array_size - 1] = element;
-        delete[] array;
-        array = new_array;
+    /**
+     * calculates the size of the passed array
+     * @param array the array to calculate the size of
+     * @return the size of the array
+     */
+    int size(std::pair<int, int>* array) {
+        return 0;
     }
 
-    // find available moves
-    std::pair<int, int>* get_available_moves(std::pair<int, int> position, Player::piece** board) {
+    /**
+     * append an element to the last position of the available_moves array
+     * @param element the element to append
+     * @param array the array to append it to
+     */
+    void append(std::pair<int, int> element){
+        int array_size = size(available_moves) + 1;
+        auto new_array = new std::pair<int, int>[array_size];
+        for(int i = 0; i < array_size - 1 ; i++)
+            new_array[i] = available_moves[i];
+        new_array[array_size - 1] = element;
+        delete[] available_moves;
+        available_moves = new_array;
+    }
+
+    // find available moves for a specific position
+    void get_available_moves(std::pair<int, int> position, Player::piece** board) {
         int available_moves_number = 0;
-        auto available_moves = new std::pair<int, int>[available_moves_number];
-        Player::piece piece = board[position.first][position.second];
+        available_moves = new std::pair<int, int>[available_moves_number];
+        piece = board[position.first][position.second];
 
         if(piece == Player::piece::X || piece == Player::piece::O) {
             if(position.first == 0) {
@@ -177,7 +190,6 @@ struct Move{
                 }
             }
         }
-        return available_moves;
     }
 
     /*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
