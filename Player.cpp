@@ -126,8 +126,9 @@ struct Move{
 
 	// find available moves for a specific position
 	void get_available_moves(std::pair<int, int> position, Player::piece** board) {
-		int available_moves_number = 1;
+		int available_moves_number = 4;
 		available_moves = new std::pair<int, int>[available_moves_number];
+
 		Player::piece dame = ((piece == Player::piece::x || piece == Player::piece::X) && piece != Player::piece::e) ? Player::piece::X : Player::piece::O;
 
 		const int player_nr = (piece == Player::piece::x || piece == Player::piece::X) ? 1 : 2;
@@ -625,6 +626,7 @@ struct Move{
 				}
 			}
 			exit = (i == actual_moves);
+			std::cout << "per i=  " << i << ", counter = " << counter << std::endl;
 		}
 	}
 
@@ -1019,11 +1021,13 @@ void Player::move(){
 	std::cout << "move called" << std::endl;
 	Move temp_moves;
 	int arr_size = 0;
+
 	// gets the list of the available pieces
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
 
 	// creates the array of the moves
 	auto moves_list = new Move[arr_size];
+
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
 		// initializing the list of moves
@@ -1035,6 +1039,7 @@ void Player::move(){
 		// calculating all the available position for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board);
 	}
+	
 	// deletes the array
 	delete[] available_pieces;
 	delete[] moves_list;
