@@ -122,44 +122,7 @@ struct Move{
         // returning the array
         return valid_positions;
     }
-    /**
-     * calculates the size of the passed array
-     * @param array the array to calculate the size of
-     * @return the size of the array
-     */
-    int size(std::pair<int, int>* array) {
-        return (sizeof(*array) / sizeof(array[0]));
-    }
 
-    /**
-     * append an element to the last position of the available_moves array
-     * @param element the element to append
-     * @param array the array to append it to
-     */
-    void append(std::pair<int, int> element){
-        int array_size = size(available_moves) + 1;
-        auto new_array = new std::pair<int, int>[array_size];
-        for(int i = 0; i < array_size - 1 ; i++)
-            new_array[i] = available_moves[i];
-        new_array[array_size - 1] = element;
-        delete[] available_moves;
-        available_moves = new_array;
-    }
-
-    /**
-    * append an element to the last position of the passed array
-    * @param element the element to append
-    * @param the reference of the array to append the element to
-    */
-    void append(std::pair<int, int> element, std::pair<int, int>*& array) {
-        int array_size = size(array) + 1;
-        auto new_array = new std::pair<int, int>[array_size];
-        for (int i = 0; i < array_size - 1; i++)
-            new_array[i] = array[i];
-        new_array[array_size] = element;
-        delete[] array;
-        array = new_array;
-    }
 
     // find available moves for a specific position
     void get_available_moves(std::pair<int, int> position, Player::piece** board) {
