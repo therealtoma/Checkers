@@ -97,18 +97,27 @@ struct Move{
         // getting the pieces to find based on the player number
         Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
         Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
-
+        arr_size = 0;
         // creating the array
-        auto valid_positions = new std::pair<int, int>[1];
 
         // finding the number of pieces to insert
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-                    append(std::make_pair(i, j), valid_positions);
+                    arr_size++;
             }
         }
-        arr_size = size(valid_positions);
+
+        auto valid_positions = new std::pair<int, int>[arr_size];
+        int count = 0;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find) {
+                    valid_positions[count] = std::make_pair(i, j);
+                    count++;
+                }
+            }
+        }
 
         // returning the array
         return valid_positions;
@@ -119,7 +128,7 @@ struct Move{
      * @return the size of the array
      */
     int size(std::pair<int, int>* array) {
-        return sizeof(*array) / sizeof(array[0]);
+        return (sizeof(*array) / sizeof(array[0]));
     }
 
     /**
@@ -147,7 +156,7 @@ struct Move{
         auto new_array = new std::pair<int, int>[array_size];
         for (int i = 0; i < array_size - 1; i++)
             new_array[i] = array[i];
-        new_array[array_size - 1] = element;
+        new_array[array_size] = element;
         delete[] array;
         array = new_array;
     }
@@ -916,7 +925,6 @@ void Player::move(){
     int arr_size = 0;
     // gets the list of the available pieces
     auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
-    std::cout << "arr_size: " << arr_size << std::endl;
 
     // creates the array of the moves
     Move moves_list[arr_size];
