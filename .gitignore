@@ -4,3 +4,4 @@ Makefile
 .vs
 out
 CMakePresets.json
+CppProperties.json
