@@ -209,19 +209,47 @@ struct Move{
                             actual_moves = 2;
                             break;
                     }
-                    exit = (i == actual_moves);
                 }
                     // dame is on the top of the board
                 else if (position.first == BOARD_SIZE - 1) { // i = BOARD_SIZE - 1
                     switch (position.second) {
                         case 0:
                             // can go bottom-right
+                            // bottom-right
+                            if(board[position.first - 1][position.second + 1] == Player::piece::e)
+                                append(std::make_pair(position.first - 1, position.second + 1), available_moves);
+                            else if(board[position.first - 2][position.second + 2] == Player::piece::e)
+                                append(std::make_pair(position.first - 2, position.second + 2), available_moves);
+                            actual_moves = 1;
                             break;
                         case BOARD_SIZE - 2:
                             // can go bottom-left or bottom-right
+                            // bottom-right
+                            if(board[position.first - 1][position.second + 1] == Player::piece::e)
+                                append(std::make_pair(position.first - 1, position.second + 1), available_moves);
+
+                            // bottom-left
+                            if(board[position.first - 1][position.second - 1] == Player::piece::e)
+                                append(std::make_pair(position.first - 1, position.second - 1), available_moves);
+                            else if(board[position.first - 2][position.second - 2] == Player::piece::e)
+                                append(std::make_pair(position.first - 2, position.second - 2), available_moves);
+
+                            actual_moves = 2;
                             break;
                         default:
                             // can go either bottom-left or bottom-right
+                            // bottom-left
+                            if(board[position.first - 1][position.second - 1] == Player::piece::e)
+                                append(std::make_pair(position.first - 1, position.second - 1), available_moves);
+                            else if(board[position.first - 2][position.second - 2] == Player::piece::e)
+                                append(std::make_pair(position.first - 2, position.second - 2), available_moves);
+
+                            // bottom right
+                            if(board[position.first + 1][position.second + 1] == Player::piece::e)
+                                append(std::make_pair(position.first + 1, position.second + 1), available_moves);
+                            else if(board[position.first + 2][position.second + 2] == Player::piece::e)
+                                append(std::make_pair(position.first + 2, position.second + 2), available_moves);
+                            actual_moves = 2;
                             break;
                     }
                 }
@@ -244,6 +272,7 @@ struct Move{
             else{
 
             }
+            exit = (i == actual_moves);
         }
     }
 
