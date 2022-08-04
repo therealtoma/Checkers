@@ -98,24 +98,18 @@ struct Move{
         Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
         Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
 
+        // creating the array
+        auto valid_positions = new std::pair<int, int>[1];
+
         // finding the number of pieces to insert
         for(int i = 0; i < BOARD_SIZE; i++){
             for(int j = 0; j < BOARD_SIZE; j++) {
                 if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-                    arr_size++;
+                    append(std::make_pair(i, j), valid_positions);
             }
         }
+        arr_size = size(valid_positions);
 
-        // creating the array
-        auto valid_positions = new std::pair<int, int>[arr_size];
-
-        // filling the array
-        for(int i = 0; i < BOARD_SIZE; i++){
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-                    valid_positions[i] = std::make_pair(i, j);
-            }
-        }
         // returning the array
         return valid_positions;
     }
@@ -125,7 +119,7 @@ struct Move{
      * @return the size of the array
      */
     int size(std::pair<int, int>* array) {
-        return 0;
+        return sizeof(*array) / sizeof(array[0]);
     }
 
     /**
@@ -143,46 +137,67 @@ struct Move{
         available_moves = new_array;
     }
 
+    /**
+    * append an element to the last position of the passed array
+    * @param element the element to append
+    * @param the reference of the array to append the element to
+    */
+    void append(std::pair<int, int> element, std::pair<int, int>*& array) {
+        int array_size = size(array) + 1;
+        auto new_array = new std::pair<int, int>[array_size];
+        for (int i = 0; i < array_size - 1; i++)
+            new_array[i] = array[i];
+        new_array[array_size - 1] = element;
+        delete[] array;
+        array = new_array;
+    }
+
     // find available moves for a specific position
     void get_available_moves(std::pair<int, int> position, Player::piece** board) {
-        int available_moves_number = 0;
+        int available_moves_number = 1;
         available_moves = new std::pair<int, int>[available_moves_number];
         piece = board[position.first][position.second];
 
-        if(piece == Player::piece::X || piece == Player::piece::O) {
-            if(position.first == 0) {
+        const int max_moves = (piece == Player::piece::X || piece == Player::piece::O) ? 4 : 2;
+
+        // finding positions for a dame
+        if(max_moves == 4) {
+            // dame is on the bottom of the board
+            if(position.first == 0) { // i = 0
                 switch (position.second) {
-                    case 0:
-                        // check if it can go top-right
+                    case 1:
+                        // check if it can go top-left or top-right
                         break;
                     case BOARD_SIZE - 1:
-                        //  chech if it can go bottom-right
+                        //  chech if it can go top-left
                         break;
                     default:
-                        //it can go either top-right or bottom-right
+                        //it can go either top-left or top-right
                         break;
                 }
             }
-            else if ( position.first == BOARD_SIZE - 1) {
+            // dame is on the top of the board
+            else if ( position.first == BOARD_SIZE - 1) { // i = BOARD_SIZE - 1
                 switch (position.second){
                     case 0:
-                        // can go top-left
+                        // can go bottom-right
                         break;
-                    case BOARD_SIZE - 1:
-                        // can go bottom-left
+                    case BOARD_SIZE - 2:
+                        // can go bottom-left or bottom-right
                         break;
                     default:
-                        // can go either top-left or bottom-left
+                        // can go either bottom-left or bottom-right
                         break;
                 }
             }
-            else {
+            // dame is in any other position
+            else { // 1 <= i <= BOARD_SIZE - 2
                 switch (position.second) {
                     case 0:
-                        // can go top-left or top-right
+                        // can go top-right or bottom-right
                         break;
                     case BOARD_SIZE - 1:
-                        // can go bottom-left or bottom-right
+                        // can go top-left or bottom-left
                         break;
                     default:
                         // can go any way
@@ -583,9 +598,24 @@ void Player::move(){
     std::cout << "move called" << std::endl;
     Move temp_moves;
     int arr_size = 0;
+    // gets the list of the available pieces
     auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
     std::cout << "arr_size: " << arr_size << std::endl;
-    //Move* moves_list = new Move[arr_size];
+
+    // creates the array of the moves
+    Move moves_list[arr_size];
+    // fills the array
+    for(int i = 0; i < arr_size; i++) {
+        // initializing the list of moves
+        moves_list[i] = {available_pieces[i],
+                         nullptr,
+                         nullptr,
+                         this->pimpl->board[available_pieces[i].first][available_pieces[i].second]};
+
+        // calculating all the available position for the current position
+        moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board);
+    }
+    // deletes the array
     delete[] available_pieces;
 }
 /**
@@ -671,9 +701,10 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        //p1.init_board("./stored_board.txt");
+        p1.init_board("./stored_board.txt");
         p1.load_board("./stored_board.txt");
         //p1.store_board("./stored_board.txt", 1);
+        p1.move();
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
