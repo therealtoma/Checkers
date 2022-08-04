@@ -1,24 +1,26 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
+#define NUMBER_OF_x 12
+#define NUMBER_OF_o 12
 /**
  * converts a piece into char
  * @param p the piece to convert
  * @return the converted character '0' in case of error
  */
 char convert_to_char(Player::piece p){
-    switch (p) {
-        case Player::piece::x:
-            return 'x';
-        case Player::piece::X:
-            return 'X';
-        case Player::piece::o:
-            return 'o';
-        case Player::piece::O:
-            return 'O';
-        case Player::piece::e:
-            return ' ';
-    }
-    return '0';
+	switch (p) {
+		case Player::piece::x:
+			return 'x';
+		case Player::piece::X:
+			return 'X';
+		case Player::piece::o:
+			return 'o';
+		case Player::piece::O:
+			return 'O';
+		case Player::piece::e:
+			return ' ';
+	}
+	throw player_exception{player_exception::invalid_board, "EXCEPTION: The insered piece is not valid"};
 }
 
 /**
@@ -27,21 +29,21 @@ char convert_to_char(Player::piece p){
  * @return tha converted piece, e for default
  */
 Player::piece convert_to_piece(char c){
-    switch (c) {
-        case 'x':
-            return Player::piece::x;
-        case 'X':
-            return Player::piece::X;
-        case 'o':
-            return Player::piece::o;
-        case 'O':
-            return Player::piece::O;
-        case ' ':
-            return Player::piece::e;
-        default:
-            break;
-    }
-    return Player::piece::e;
+	switch (c) {
+		case 'x':
+			return Player::piece::x;
+		case 'X':
+			return Player::piece::X;
+		case 'o':
+			return Player::piece::o;
+		case 'O':
+			return Player::piece::O;
+		case ' ':
+			return Player::piece::e;
+		default:
+			break;
+	}
+	throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted haracter is not valid"};
 }
 
 /**
@@ -49,12 +51,12 @@ Player::piece convert_to_piece(char c){
  * @return the allocated board
  */
 Player::piece** initialize_board(){
-    Player::piece** matrix = nullptr;
-    matrix = new Player::piece*[BOARD_SIZE];
-    for(int i = 0; i < BOARD_SIZE; i++)
-        matrix[i] = new Player::piece[BOARD_SIZE];
+	Player::piece** matrix = nullptr;
+	matrix = new Player::piece*[BOARD_SIZE];
+	for(int i = 0; i < BOARD_SIZE; i++)
+		matrix[i] = new Player::piece[BOARD_SIZE];
 
-    return matrix;
+	return matrix;
 }
 
 /**
@@ -62,9 +64,9 @@ Player::piece** initialize_board(){
  * @param board the boad to deallocate
  */
 void delete_board(Player::piece** (&board)){
-    for(int i = 0; i < BOARD_SIZE; i++)
-        delete[] board[i];
-    delete[] board;
+	for(int i = 0; i < BOARD_SIZE; i++)
+		delete[] board[i];
+	delete[] board;
 }
 
 /**
@@ -73,15 +75,586 @@ void delete_board(Player::piece** (&board)){
  * @return true if the file exists, false otherwise
  */
 bool file_exists(const std::string& filename){
-    std::ifstream f(filename.c_str());
-    return f.good();
+	std::ifstream f(filename.c_str());
+	return f.good();
 }
+// struct Move code
+struct Move{
+	std::pair<int, int> current_position;
+	std::pair<int, int>* available_moves;
+	std::pair<std::pair<int, int>, int>* evaluations;
+	Player::piece piece;
+	/**
+	 * gets an array of pair of all the positions of a specific piece of a specific board of a specific player
+	 * @param player_nr the player number
+	 * @param board the board to chekc
+	 * @param arr_size the size of the returned array
+	 * @return an array of pair with the positions
+	 * @throws player_exception::board_not_valid if the board is not valid
+	 * @throws player_exception::index_out_of_bounds in case the player number is not valid
+	 */
+	std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board, int &arr_size){
+		// getting the pieces to find based on the player number
+		Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+		Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+		arr_size = 0;
+		// creating the array
 
+		// finding the number of pieces to insert
+		for(int i = 0; i < BOARD_SIZE; i++){
+			for(int j = 0; j < BOARD_SIZE; j++) {
+				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+					arr_size++;
+			}
+		}
+
+		auto valid_positions = new std::pair<int, int>[arr_size];
+		int count = 0;
+		for(int i = 0; i < BOARD_SIZE; i++){
+			for(int j = 0; j < BOARD_SIZE; j++) {
+				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find) {
+					valid_positions[count] = std::make_pair(i, j);
+					count++;
+				}
+			}
+		}
+
+		// returning the array
+		return valid_positions;
+	}
+
+
+	// find available moves for a specific position
+	void get_available_moves(std::pair<int, int> position, Player::piece** board) {
+		int available_moves_number = 1;
+		available_moves = new std::pair<int, int>[available_moves_number];
+		Player::piece dame = ((piece == Player::piece::x || piece == Player::piece::X) && piece != Player::piece::e) ? Player::piece::X : Player::piece::O;
+
+		const int player_nr = (piece == Player::piece::x || piece == Player::piece::X) ? 1 : 2;
+		const int max_moves = (piece == Player::piece::X || piece == Player::piece::O) ? 4 : 2;
+		int actual_moves = 0, counter = 0;
+		bool exit = false;
+
+		for(int i = 0; i < max_moves && !exit; i++) {
+			// finding positions for a dame
+			if (max_moves == 4) {
+				// dame is on the bottom of the board
+				if (position.first == 0) { // i = 0
+					switch (position.second) { // j
+						case 1:
+							// check if it can go top-left or top-right
+
+							// top-left
+							if(board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							// top-right
+							if(board[position.first + 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first + 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						case BOARD_SIZE - 1:
+							//  chech if it can go top-left
+
+							// top-left
+							if(board[position.first + 1][position.second - 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if(board[position.first + 2][position.second - 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						default:
+							// it can go either top-left or top-right
+
+							// top-left
+							if(board[position.first + 1][position.second - 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if(board[position.first + 2][position.second - 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// top-right
+							if(board[position.first + 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+							}
+							else if(board[position.first + 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+					}
+				}
+					// dame is on the top of the board
+				else if (position.first == BOARD_SIZE - 1) { // i = BOARD_SIZE - 1
+					switch (position.second) {
+						case 0:
+							// can go bottom-right
+
+							// bottom-right
+							if(board[position.first - 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						case BOARD_SIZE - 2:
+							// can go bottom-left or bottom-right
+
+							// bottom-right
+							if(board[position.first - 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+
+							// bottom-left
+							if(board[position.first - 1][position.second - 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second - 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						default:
+							// can go either bottom-left or bottom-right
+
+							// bottom-left
+							if(board[position.first - 1][position.second - 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second - 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							// bottom right
+							if(board[position.first - 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+							actual_moves = 2;
+							break;
+					}
+				}
+					// dame is in any other position
+				else { // 1 <= i <= BOARD_SIZE - 2
+					switch (position.second) {
+						case 0:
+							// can go top-right or bottom-right
+
+							// top-right
+							if(board[position.first + 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first + 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							// bottom-right
+							if(board[position.first - 1][position.second + 1] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second + 2] == Player::piece::e){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						case BOARD_SIZE - 1:
+							// can go top-left or bottom-left
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// bottom-left
+							if (board[position.first - 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second - 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						default:
+							// can go any way
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							// bottom-left
+							if (board[position.first - 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second - 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							// bottom-right
+							if (board[position.first - 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second + 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 4;
+
+							break;
+					}
+				}
+			}
+			// checking position for normal pieces
+			else if(player_nr == 1){
+				// piece is on the bottom of the board
+				if (position.first == 0) { // i = 0
+					switch (position.second) { // j
+						case 1:
+							// check if it can go top-left or top-right
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e && board[position.first + 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						case BOARD_SIZE - 1:
+							//  check if it can go top-left
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e && board[position.first + 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						default:
+							// it can go either top-left or top-right
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if(board[position.first + 2][position.second - 2] == Player::piece::e && board[position.first + 1][position.second - 1] != dame){
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e && board[position.first + 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+					}
+				}
+				// piece is in any other position
+				else { // 1 <= i <= BOARD_SIZE - 2
+					switch (position.second) {
+						case 0:
+							// can go top-right
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e && board[position.first + 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						case BOARD_SIZE - 1:
+							// can go top-left or bottom-left
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e && board[position.first + 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						default:
+							// can go any way
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e && board[position.first + 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e && board[position.first + 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+					}
+				}
+			}
+			else{
+				// dame is on the top of the board
+				if (position.first == BOARD_SIZE - 1) { // i = BOARD_SIZE - 1
+					switch (position.second) {
+						case 0:
+							// can go bottom-right
+
+							// bottom-right
+							if (board[position.first - 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second + 2] == Player::piece::e && board[position.first - 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						case BOARD_SIZE - 2:
+							// can go bottom-left or bottom-right
+
+							// bottom-right
+							if (board[position.first - 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+
+							// bottom-left
+							if (board[position.first - 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second - 2] == Player::piece::e && board[position.first - 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+						default:
+							// can go either bottom-left or bottom-right
+
+							// bottom-left
+							if (board[position.first - 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first - 2][position.second - 2] == Player::piece::e && board[position.first - 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first - 2, position.second - 2);
+								counter++;
+							}
+
+							// bottom right
+							if (board[position.first - 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first - 1, position.second + 1);
+								counter++;
+							}
+							else if(board[position.first - 2][position.second + 2] == Player::piece::e && board[position.first - 1][position.second + 1] != dame){
+								available_moves[counter] = std::make_pair(position.first - 2, position.second + 2);
+								counter++;
+							}
+							actual_moves = 2;
+							break;
+					}
+				}
+					// dame is in any other position
+				else { // 1 <= i <= BOARD_SIZE - 2
+					switch (position.second) {
+						case 0:
+							// can go bottom-right
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e && board[position.first + 1][position.second + 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						case BOARD_SIZE - 1:
+							// can go top-left or bottom-left
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e && board[position.first + 1][position.second - 1] != dame) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							actual_moves = 1;
+							break;
+						default:
+							// can go any way
+
+							// top-left
+							if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second - 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second - 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second - 2);
+								counter++;
+							}
+
+							// top-right
+							if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 1, position.second + 1);
+								counter++;
+							}
+							else if (board[position.first + 2][position.second + 2] == Player::piece::e) {
+								available_moves[counter] = std::make_pair(position.first + 2, position.second + 2);
+								counter++;
+							}
+
+							actual_moves = 2;
+							break;
+					}
+				}
+			}
+			exit = (i == actual_moves);
+		}
+	}
+
+	/*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+		Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+		Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+		for(int i = 0; i < BOARD_SIZE; i++){
+			for(int j = 0; j < BOARD_SIZE; j++) {
+				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+					arr_size++;
+			}
+		}
+
+		auto valid_positions = new std::pair<std::pair<int, int>, int>[arr_size];
+		for(int i = 0; i < BOARD_SIZE; i++){
+			for(int j = 0; j < BOARD_SIZE; j++) {
+				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+					valid_positions[i] = std::make_pair(std::make_pair(i, j), 0);
+			}
+		}
+		return valid_positions;
+	}*/
+
+};
+// end struct Move code
 struct Player::Impl{
-    Impl* next;
-    Player::piece** board; // the dama board
-    int index; // the index of the board
-    int player_nr; // the player number
+	Impl* next;
+	Player::piece** board; // the dama board
+	int index; // the index of the board
+	int player_nr; // the player number
 };
 
 /**
@@ -89,14 +662,13 @@ struct Player::Impl{
  * @param player_nr the player number
  */
 Player::Player(int player_nr) {
+	std::cout << "constructor called" << std::endl;
 
-    std::cout << "constructor called" << std::endl;
+	//checks if player number is valid otherwise throws an exception
+	if (player_nr != 1 && player_nr != 2)
+		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The player number can only be 1 or 2. Received " + std::to_string(player_nr)};
 
-    //checks if player number is valid otherwise throws an exception
-    if (player_nr != 1 && player_nr != 2)
-        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 1 or 2"};
-
-    pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
+	pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
 
 } // constructor
@@ -105,17 +677,17 @@ Player::Player(int player_nr) {
  * Destroy the Player object
  */
 Player::~Player(){
-    std::cout << "destructor called" << std::endl;
-    // loops the list
-    while(pimpl != nullptr){
-        Impl* temp = pimpl; // saves the list address
-        pimpl = pimpl->next; // goes to the next node
-        if(temp->board != nullptr) {
-            delete_board(temp->board);
-        }
-        delete temp; // deletes the memory
-    }
-    delete pimpl; // deletes the last memory
+	std::cout << "destructor called" << std::endl;
+	// loops the list
+	while(pimpl != nullptr){
+		Impl* temp = pimpl; // saves the list address
+		pimpl = pimpl->next; // goes to the next node
+		if(temp->board != nullptr) {
+			delete_board(temp->board);
+		}
+		delete temp; // deletes the memory
+	}
+	delete pimpl; // deletes the last memory
 } // destructor
 
 /**
@@ -123,39 +695,43 @@ Player::~Player(){
  * @param copy the other player
  */
 Player::Player(const Player& copy){
-    std::cout << "copy constructor called" << std::endl;
-    this->pimpl = new Impl{
-    nullptr,
-    initialize_board(),
-    copy.pimpl->index,
-        copy.pimpl->player_nr
-    };
+	std::cout << "copy constructor called" << std::endl;
+	if(copy.pimpl->board != nullptr) {
+		this->pimpl = new Impl{
+				nullptr,
+				initialize_board(),
+				copy.pimpl->index,
+				copy.pimpl->player_nr
+		};
 
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            this->pimpl->board[i][j] = copy.pimpl->board[i][j];
-        }
-    }
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
+				this->pimpl->board[i][j] = copy.pimpl->board[i][j];
+			}
+		}
 
-    Impl* copy_temp = copy.pimpl;
-    Impl* this_temp = this->pimpl;
+		Impl *copy_temp = copy.pimpl;
+		Impl *this_temp = this->pimpl;
 
-    while(copy_temp->next) {
-        this_temp->next = new Impl{
-            nullptr,
-            initialize_board(),
-            this_temp->index + 1,
-            copy_temp->player_nr
-        };
+		while (copy_temp->next) {
+			this_temp->next = new Impl{
+					nullptr,
+					initialize_board(),
+					this_temp->index + 1,
+					copy_temp->player_nr
+			};
 
-        for(int i = 0; i < BOARD_SIZE; i++) {
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
-            }
-        }
-        this_temp = this_temp->next;
-        copy_temp = copy_temp->next;
-    }
+			for (int i = 0; i < BOARD_SIZE; i++) {
+				for (int j = 0; j < BOARD_SIZE; j++) {
+					this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+				}
+			}
+			this_temp = this_temp->next;
+			copy_temp = copy_temp->next;
+		}
+	}
+	else
+		this->pimpl = new Impl{nullptr, nullptr, copy.pimpl->index, copy.pimpl->player_nr};
 
 } // copy constructor
 
@@ -168,37 +744,38 @@ Player::Player(const Player& copy){
  */
 Player::piece Player::operator()(int r, int c, int history_offset) const{
 
-    // checkin if the row is within the range 0 <= r < BOARD_SIZE
-    if(r >= BOARD_SIZE || r < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted row is not valid"};
+	// checkin if the row is within the range 0 <= r < BOARD_SIZE
+	if(r >= BOARD_SIZE || r < 0)
+		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted row is not valid. Reveived " + std::to_string(r)};
 
-    // checkin if the row is within the range 0 <= r < BOARD_SIZE
-    if(c >= BOARD_SIZE || c < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted column is not valid"};
+	// checkin if the row is within the range 0 <= r < BOARD_SIZE
+	if(c >= BOARD_SIZE || c < 0)
+		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted column is not valid. Received " + std::to_string(c)};
 
-    Impl* temp = this->pimpl;
-    int memory_size = 0;
-    // calculating memory size
-    while(temp->next){
-        temp = temp->next;
-        memory_size++;
-    }
+	Impl* temp = this->pimpl;
+	int memory_size = 0;
+	(this->pimpl->board != nullptr) ? memory_size = 1 : throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+	// calculating memory size
+	while(temp->next){
+		temp = temp->next;
+		memory_size++;
+	}
 
-    // checking history_offset validity
-    if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+	// checking history_offset validity
+	if(history_offset >= memory_size)
+		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
-    // calculating the index of the chosen board
-    int index = memory_size - 1;
-    temp = this->pimpl;
+	// calculating the index of the chosen board
+	int index = memory_size - 1;
+	temp = this->pimpl;
 
-    // going to the chosen board
-    while(index != history_offset){
-        temp = temp->next;
-        index--;
-    }
+	// going to the chosen board
+	while(index != history_offset){
+		temp = temp->next;
+		index--;
+	}
 
-    return temp->board[r][c];
+	return temp->board[r][c];
 
 }
 
@@ -208,51 +785,51 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
  * @return a reference to the updated player
  */
 Player& Player::operator=(const Player& p){
-    std::cout << "operator= called" << std::endl;
-    // avoiding self assignment
-    if(&p != this) {
-        while (this->pimpl) {
-            Impl *temp = this->pimpl;
-            this->pimpl = this->pimpl->next;
-            if (temp->board != nullptr)
-                delete_board(temp->board);
-            delete temp;
-        }
-        delete pimpl;
-        this->pimpl = new Impl{
-                nullptr,
-                initialize_board(),
-                p.pimpl->index,
-                p.pimpl->player_nr
-        };
+	std::cout << "operator= called" << std::endl;
+	// avoiding self assignment
+	if(&p != this) {
+		while (this->pimpl) {
+			Impl *temp = this->pimpl;
+			this->pimpl = this->pimpl->next;
+			if (temp->board != nullptr)
+				delete_board(temp->board);
+			delete temp;
+		}
+		delete pimpl;
+		this->pimpl = new Impl{
+				nullptr,
+				initialize_board(),
+				p.pimpl->index,
+				p.pimpl->player_nr
+		};
 
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                this->pimpl->board[i][j] = p.pimpl->board[i][j];
-            }
-        }
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			for (int j = 0; j < BOARD_SIZE; j++) {
+				this->pimpl->board[i][j] = p.pimpl->board[i][j];
+			}
+		}
 
-        Impl *copy_temp = p.pimpl;
-        Impl *this_temp = this->pimpl;
+		Impl *copy_temp = p.pimpl;
+		Impl *this_temp = this->pimpl;
 
-        while (copy_temp->next) {
-            this_temp->next = new Impl{
-                    nullptr,
-                    initialize_board(),
-                    this_temp->index + 1,
-                    copy_temp->player_nr
-            };
+		while (copy_temp->next) {
+			this_temp->next = new Impl{
+					nullptr,
+					initialize_board(),
+					this_temp->index + 1,
+					copy_temp->player_nr
+			};
 
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                for (int j = 0; j < BOARD_SIZE; j++) {
-                    this_temp->next->board[i][j] = copy_temp->next->board[i][j];
-                }
-            }
-            this_temp = this_temp->next;
-            copy_temp = copy_temp->next;
-        }
-    }
-    return *this;
+			for (int i = 0; i < BOARD_SIZE; i++) {
+				for (int j = 0; j < BOARD_SIZE; j++) {
+					this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+				}
+			}
+			this_temp = this_temp->next;
+			copy_temp = copy_temp->next;
+		}
+	}
+	return *this;
 }
 
 
@@ -261,68 +838,89 @@ Player& Player::operator=(const Player& p){
  * @param filename the file name
  */
 void Player::load_board(const std::string& filename){
-    std::cout << "load board called" << std::endl;
+	std::cout << "load board called" << std::endl;
 
-    Impl* temp = this->pimpl;
-    int last_index = this->pimpl->index;
+	Impl* temp = this->pimpl;
+	int last_index = this->pimpl->index;
 
-    if(this->pimpl->board == nullptr){
-        this->pimpl->board = initialize_board();
-        temp = this->pimpl;
-    }
-    else{
-        // goes to the end of the player list
-        while(temp->next) {
-            last_index++;
-            temp = temp->next;
-        }
-        temp->next = new Impl{
-                nullptr,
-                initialize_board(),
-                last_index + 1,
-                this->pimpl->player_nr
-        };
-        temp = temp->next;
-    }
+	if(this->pimpl->board == nullptr){
+		this->pimpl->board = initialize_board();
+		temp = this->pimpl;
+	}
+	else{
+		// goes to the end of the player list
+		while(temp->next) {
+			last_index++;
+			temp = temp->next;
+		}
+		temp->next = new Impl{
+				nullptr,
+				initialize_board(),
+				last_index + 1,
+				this->pimpl->player_nr
+		};
+		temp = temp->next;
+	}
 
-    if(!file_exists(filename))
-        throw player_exception{player_exception::missing_file, "file not found"};
+	if(!file_exists(filename))
+		throw player_exception{player_exception::missing_file, "EXCEPTION: file " + filename + " does not exist"};
 
-    std::fstream file(filename, std::fstream::in);
-    Player::piece** board = initialize_board();
-    char cella;
-    int read_characters = 0, i = BOARD_SIZE - 1, j = 0;
+	std::fstream file(filename, std::fstream::in);
+	Player::piece** board = initialize_board();
+	char cella;
+	int read_characters = 0, i = BOARD_SIZE - 1, j = 0, count_x = 0, count_o = 0;
 
-    while(file.get(cella)) {
-        if(cella != '\n'){
+	while(file.get(cella)) {
+		if(cella != '\n'){
+			// the file containes too many characters
+			if(i < 0) {
+				delete_board(board);
+				throw player_exception{player_exception::invalid_board,
+									   "EXCEPTION: the board (" + filename + ") containes more values than it should."};
+			}
+			// a piece is in the white space
+			if((i + j) % 2 == 0 && cella != ' ') {
+				delete_board(board);
+				throw player_exception{player_exception::invalid_board,
+									   "EXCEPTION: there's a piece in a not allowed space. Reading file " + filename};
+			}
+			// counts the number of o's and x's
+			if(cella == 'o' || cella == 'O') count_o++;
+			if(cella == 'x' || cella == 'X') count_x++;
 
-            board[i][j] = convert_to_piece(cella);
-            std::cout << convert_to_char(board[i][j]);
-            j++;
-            read_characters++;
-            if(j == BOARD_SIZE){
-                j = 0;
-                i--;
-                std::cout << std::endl;
-            }
-        }
-        file.get(cella);
-    }
-    file.close();
+			board[i][j] = convert_to_piece(cella);
+			j++;
+			read_characters++;
+			if(j == BOARD_SIZE){
+				j = 0;
+				i--;
+			}
+		}
+		file.get(cella);
+	}
+	file.close();
 
-    if(read_characters!= BOARD_SIZE * BOARD_SIZE){
+	if(read_characters != BOARD_SIZE * BOARD_SIZE){
+	   delete_board(board);
+	   throw player_exception{player_exception::invalid_board, "EXCEPTION: the selected board (" + filename+ ") is not valid. The problem is about it's size."};
+	}
 
-       delete_board(board);
+	if(count_x > NUMBER_OF_x){
+		delete_board(board);
+		throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many x pieces in the board (" + filename + ")"};
+	}
 
-       throw player_exception{player_exception::invalid_board, "board not valid"};
-    }
+	if(count_o > NUMBER_OF_o){
+		delete_board(board);
+		throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many o pieces in the board (" + filename + ")"};
+	}
 
-    for(i = 0; i < BOARD_SIZE; i++){
-        for(j = 0; j < BOARD_SIZE; j++) {
-            temp->board[i][j] = board[i][j];
-        }
-    }
-    delete_board(board);
+	for(i = 0; i < BOARD_SIZE; i++){
+		for(j = 0; j < BOARD_SIZE; j++) {
+			temp->board[i][j] = board[i][j];
+		}
+	}
+	delete_board(board);
 }
 
 /**
@@ -331,40 +929,40 @@ void Player::load_board(const std::string& filename){
  * @param history_offset the number of the board
  */
 void Player::store_board(const std::string& filename, int history_offset) const{
-    std::cout << "store_board called" << std::endl;
+	std::cout << "store_board called" << std::endl;
 
-    Impl* temp = this->pimpl;
-    int memory_size = 0;
+	Impl* temp = this->pimpl;
+	int memory_size = 0;
 
-    while(temp->next){
-        temp = temp->next;
-        memory_size++;
-    }
+	while(temp->next){
+		temp = temp->next;
+		memory_size++;
+	}
 
-    if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+	if(history_offset >= memory_size)
+		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
-    int index = memory_size - 1;
-    temp = this->pimpl;
+	int index = memory_size - 1;
+	temp = this->pimpl;
 
-    while(index != history_offset){
-        temp = temp->next;
-        index--;
-    }
+	while(index != history_offset){
+		temp = temp->next;
+		index--;
+	}
 
-    std::fstream file;
-    file.open(filename, std::fstream::out);
+	std::fstream file;
+	file.open(filename, std::fstream::out);
 
-    for(int i = BOARD_SIZE - 1; i >= 0; i--) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convert_to_char(temp->board[i][j]);
-            if(j != BOARD_SIZE - 1) file << ' ';
-        }
-        if(i != 0)
-            file << "\n";
-    }
+	for(int i = BOARD_SIZE - 1; i >= 0; i--) {
+		for(int j = 0; j < BOARD_SIZE; j++) {
+			file << convert_to_char(temp->board[i][j]);
+			if(j != BOARD_SIZE - 1) file << ' ';
+		}
+		if(i != 0)
+			file << "\n";
+	}
 
-    file.close();
+	file.close();
 
 }
 
@@ -373,69 +971,40 @@ void Player::store_board(const std::string& filename, int history_offset) const{
  * @param filename the file to to store the board into
  */
 void Player::init_board(const std::string& filename) const{
-    // initial board
-    std::cout << "init_board called" << std::endl;
+	// initial board
+	std::cout << "init_board called" << std::endl;
 
-    Impl* temp = this->pimpl;
-    int last_index = this->pimpl->index;
+	// allocates the memory
+	Player::piece **initial_board = initialize_board();
 
-    if(this->pimpl->board == nullptr){
-        this->pimpl->board = initialize_board();
-        temp = this->pimpl;
-    }
-    else{
-        // goes to the end of the player list
-        while(temp->next) {
-            last_index++;
-            temp = temp->next;
-        }
-        temp->next = new Impl{
-                nullptr,
-                initialize_board(),
-                last_index + 1,
-                this->pimpl->player_nr
-        };
-        temp = temp->next;
-    }
-    // allocates the memory
-    Player::piece **initial_board = initialize_board();
+	// fill starting board with the default field
+	for(int i = 0; i < BOARD_SIZE; i++) {
+		for (int j = 0; j < BOARD_SIZE; j++) {
+			if (i >= 0 && i <= 2)
+				((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::x;
+			else if (i >= 5 && i <= 7)
+				((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
+			else
+				initial_board[i][j] = Player::piece::e;
+		}
+	}
 
-    // fill starting board with the default field
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            if (i >= 0 && i <= 2)
-                ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::x;
-            else if (i >= 5)
-                ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
-            else
-                initial_board[i][j] = Player::piece::e;
-        }
-    }
+	std::fstream file;
+	file.open(filename, std::fstream::out);
 
-    // filling the board
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            temp->board[i][j] = initial_board[i][j];
-        }
-    }
+	for(int i = BOARD_SIZE - 1; i >= 0; i--) {
+		for(int j = 0; j < BOARD_SIZE; j++) {
+			file << convert_to_char(initial_board[i][j]);
+			if(j != BOARD_SIZE - 1) file << " ";
+		}
+		if(i != 0)
+			file << "\n";
+	}
 
-    std::fstream file;
-    file.open(filename, std::fstream::out);
+	file.close();
+	// deletes the temporary variables
 
-    for(int i = BOARD_SIZE - 1; i >= 0; i--) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convert_to_char(temp->board[i][j]);
-            if(j != BOARD_SIZE - 1) file << ' ';
-        }
-        if(i != 0)
-            file << "\n";
-    }
-
-    file.close();
-    // deletes the temporary variables
-
-    delete_board(initial_board);
-    //deleteBoard(temp1->board);
+	delete_board(initial_board);
 }
 
 /*
@@ -447,36 +1016,56 @@ void Player::init_board(const std::string& filename) const{
  * is automatically lost.
   */
 void Player::move(){
-    std::cout << "move called" << std::endl;
+	std::cout << "move called" << std::endl;
+	Move temp_moves;
+	int arr_size = 0;
+	// gets the list of the available pieces
+	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
+
+	// creates the array of the moves
+	Move moves_list[arr_size];
+	// fills the array
+	for(int i = 0; i < arr_size; i++) {
+		// initializing the list of moves
+		moves_list[i] = {available_pieces[i],
+						 nullptr,
+						 nullptr,
+						 this->pimpl->board[available_pieces[i].first][available_pieces[i].second]};
+
+		// calculating all the available position for the current position
+		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board);
+	}
+	// deletes the array
+	delete[] available_pieces;
 }
 /**
  * compares the latest two boards and checks if the move is valid
  * @return true if the move is valid, false otherwise
  */
 bool Player::valid_move() const{
-    std::cout << "valid_move called" << std::endl;
-    return true;
+	std::cout << "valid_move called" << std::endl;
+	return true;
 }
 /**
  * deletes the latest board in the player memory
  */
 void Player::pop(){
-    std::cout << "pop called" << std::endl;
-    if(this->pimpl->next == nullptr){
-        if(this->pimpl->board == nullptr)
-            throw player_exception{player_exception::index_out_of_bounds, "The board is empty"};
-        delete_board(this->pimpl->board);
-        this->pimpl->board = nullptr;
-    }
-    else {
-        Impl* temp = this->pimpl;
-        while(temp->next->next != nullptr)
-            temp = temp->next;
-        if(temp->next->board != nullptr)
-            delete_board(temp->next->board);
-        delete temp->next;
-        temp->next = nullptr;
-    }
+	std::cout << "pop called" << std::endl;
+	if(this->pimpl->next == nullptr){
+		if(this->pimpl->board == nullptr)
+			throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The board is empty"};
+		delete_board(this->pimpl->board);
+		this->pimpl->board = nullptr;
+	}
+	else {
+		Impl* temp = this->pimpl;
+		while(temp->next->next != nullptr)
+			temp = temp->next;
+		if(temp->next->board != nullptr)
+			delete_board(temp->next->board);
+		delete temp->next;
+		temp->next = nullptr;
+	}
 }
 
 /**
@@ -485,8 +1074,8 @@ void Player::pop(){
  * @return true if the player has won the game, false otherwise
  */
 bool Player::wins(int player_nr) const{
-    std::cout << "wins called" << std::endl;
-    return true;
+	std::cout << "wins called" << std::endl;
+	return true;
 }
 
 /**
@@ -494,8 +1083,8 @@ bool Player::wins(int player_nr) const{
  * @return true if the latest board has won the game, false otherwise
  */
 bool Player::wins() const{
-    std::cout << "wins called" << std::endl;
-    return true;
+	std::cout << "wins called" << std::endl;
+	return true;
 }
 
 /**
@@ -504,8 +1093,8 @@ bool Player::wins() const{
  * @return true if the player has lost the game, false otherwise
  */
 bool Player::loses(int player_nr) const{
-    std::cout << "loses called" << std::endl;
-    return true;
+	std::cout << "loses called" << std::endl;
+	return true;
 }
 
 /**
@@ -513,8 +1102,8 @@ bool Player::loses(int player_nr) const{
  * @return true if the latest bord has lost the game, false otherwise
  */
 bool Player::loses() const{
-    std::cout << "loses called" << std::endl;
-    return true;
+	std::cout << "loses called" << std::endl;
+	return true;
 }
 
 /**
@@ -525,25 +1114,20 @@ bool Player::loses() const{
  * @return the number of boards
  */
 int Player::recurrence() const{
-    std::cout << "recurrence called" << std::endl;
-    return 0;
+	std::cout << "recurrence called" << std::endl;
+	return 0;
 }
 
 int main(){
-    try {
-        Player p1(1);
-        Player p2(2);
-        p1.init_board("./ciao.txt");
-        p1.init_board("./ciao2.txt");
-        p1.pop();
-
-        //p1.load_board("./ciao.txt");
-        //p1.load_board("./ciao2.txt");
-        //p1.init_board("./ciao2.txt");
-        //std::cout << p1(0,0,1);
-    }
-    catch(player_exception& e){
-        std::cout << e.msg << std::endl;
-    }
-    return 0;
+	try {
+		Player p1(1);
+		p1.init_board("./stored_board.txt");
+		p1.load_board("./stored_board.txt");
+		//p1.store_board("./stored_board.txt", 1);
+		p1.move();
+	}
+	catch(player_exception& e){
+		std::cout << e.msg << std::endl;
+	}
+	return 0;
 }
