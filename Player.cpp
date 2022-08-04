@@ -1023,7 +1023,7 @@ void Player::move(){
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
 
 	// creates the array of the moves
-	Move moves_list[arr_size];
+	auto moves_list = new Move[arr_size];
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
 		// initializing the list of moves
@@ -1037,6 +1037,7 @@ void Player::move(){
 	}
 	// deletes the array
 	delete[] available_pieces;
+	delete[] moves_list;
 }
 /**
  * compares the latest two boards and checks if the move is valid
