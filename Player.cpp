@@ -262,7 +262,22 @@ struct Move{
         else {
             total_possible_moves = 2;
             this->available_moves = new std::pair<int, int>[total_possible_moves];
+            // player_nr == 1 the piece can only go top
+            if (player_nr) {
+                // cheking if it can go top-right
+                if (position.first + 1 < BOARD_SIZE && position.second + 1 < BOARD_SIZE) {
+                    if (board[position.first + 1][position.second + 1] == Player::piece::e) {
+                        this->available_moves[actual_moves] = std::make_pair(position.first + 1,
+                                                                             position.second + 1);
+                        actual_moves++;
+                    }
+                }
+                // cheking if it can go top-left
+            }
+            // player_nr == 2 the piece can only go bottom
+            else {
 
+            }
         }
 
 	}
