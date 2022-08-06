@@ -310,10 +310,26 @@ struct Move{
             else {
                 // chacking if it can go bottom-right
                 if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE) {
-                    if() {}
+                    if (board[position.first - 1][position.second + 1] == Player::piece::e) {
+                        this->available_moves[actual_moves] = std::make_pair(position.first -1,
+                                                                             position.second +1);
+                        actual_moves++;
+                    }
+                    else {
+
+                    }
                 }
                 // checking if it can go bottom-left
-                if () {}
+                if (position.first - 1 >= 0 && position.second - 1 >= 0) {
+                    if (board[position.first - 1][position.second - 1] == Player::piece::e) {
+                        this->available_moves[actual_moves] = std::make_pair(position.first - 1,
+                                                                             position.second - 1);
+                        actual_moves++;
+                    }
+                    else {
+
+                    }
+                }
             }
         }
 
