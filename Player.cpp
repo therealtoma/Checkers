@@ -351,6 +351,14 @@ struct Move{
                 }
             }
         }
+        if (actual_moves != total_possible_moves) {
+            auto temp = new std::pair<int, int>[actual_moves];
+            for (int i = 0; i < actual_moves; i++)
+                temp[i] = this->available_moves[i];
+            delete[] this->available_moves;
+            this->available_moves = temp;
+            delete[] temp;
+        }
 
 	}
 
