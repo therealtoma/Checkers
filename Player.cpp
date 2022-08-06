@@ -294,9 +294,9 @@ struct Move{
                    }
                    else {
                        if (position.first + 2 < BOARD_SIZE && position.second - 2 >= 0) {
-                           if(board[position.first + 2][position.second - 2] != enemy_checker) {
-                               if(board[position.first + 2][position.second - 2] != checker_piece
-                                  && board[position.first + 2][position.second - 2] != normal_piece) {
+                           if (board[position.first + 2][position.second - 2] != enemy_checker) {
+                               if (board[position.first + 2][position.second - 2] != checker_piece
+                                && board[position.first + 2][position.second - 2] != normal_piece) {
                                    this->available_moves[actual_moves] = std::make_pair(position.first + 2,
                                                                                         position.second - 2);
                                    actual_moves++;
@@ -308,6 +308,7 @@ struct Move{
             }
             // player_nr == 2 the piece can only go bottom
             else {
+                Player::piece enemy_checker = Player::piece::X;
                 // chacking if it can go bottom-right
                 if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE) {
                     if (board[position.first - 1][position.second + 1] == Player::piece::e) {
@@ -316,7 +317,16 @@ struct Move{
                         actual_moves++;
                     }
                     else {
-
+                       if (position.first - 2 >= 0 && position.second + 2 < BOARD_SIZE) {
+                           if (board[position.first - 2][position.second + 2] != enemy_checker) {
+                                if (board[position.first - 2][position.second + 2] != checker_piece
+                                && board[position.first - 2][position.second + 2] != normal_piece) {
+                                   this->available_moves[actual_moves] = std::make_pair(position.first - 2,
+                                                                                        position.second + 2);
+                                   actual_moves++;
+                               }
+                           }
+                       }
                     }
                 }
                 // checking if it can go bottom-left
@@ -327,7 +337,16 @@ struct Move{
                         actual_moves++;
                     }
                     else {
-
+                        if (position.first - 2 >= 0 && position.second - 2 >= 0) {
+                            if (board[position.first - 2][position.second - 2] != enemy_checker) {
+                                if (board[position.first - 2][position.second - 2] != checker_piece
+                                && board[position.first - 2][position.second - 2] != normal_piece) {
+                                    this->available_moves[actual_moves] = std::make_pair(position.first - 2,
+                                                                                         position.second - 2);
+                                    actual_moves++;
+                                }
+                            }
+                        }
                     }
                 }
             }
