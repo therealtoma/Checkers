@@ -129,7 +129,7 @@ struct Move{
 	 * @param position the position to consider
 	 * @param board the board to check
 	 */
-	void get_available_moves(std::pair<int, int> position, Player::piece** board) {
+	void get_available_moves(std::pair<int, int> position, Player::piece** board, int &size) {
 
         // if the received position is not valid an exception is thrown
 	    if (position.first < 0 || position.second < 0 || position.first >= BOARD_SIZE || position.second >= BOARD_SIZE)
@@ -351,7 +351,11 @@ struct Move{
                 }
             }
         }
-        if (actual_moves != total_possible_moves) {
+        if (actual_moves == 0) {
+            delete[] this->available_moves;
+            this->available_moves = nullptr;
+        }
+        else if (actual_moves != total_possible_moves) {
             auto temp = new std::pair<int, int>[actual_moves];
             for (int i = 0; i < actual_moves; i++)
                 temp[i] = this->available_moves[i];
@@ -360,27 +364,12 @@ struct Move{
             delete[] temp;
         }
 
+        size = actual_moves;
+
 	}
 
-	/*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
-		Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
-		Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
-		for(int i = 0; i < BOARD_SIZE; i++){
-			for(int j = 0; j < BOARD_SIZE; j++) {
-				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-					arr_size++;
-			}
-		}
-
-		auto valid_positions = new std::pair<std::pair<int, int>, int>[arr_size];
-		for(int i = 0; i < BOARD_SIZE; i++){
-			for(int j = 0; j < BOARD_SIZE; j++) {
-				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
-					valid_positions[i] = std::make_pair(std::make_pair(i, j), 0);
-			}
-		}
-		return valid_positions;
-	}*/
+	void get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+	}
 
 };
 // end struct Move code
@@ -752,7 +741,7 @@ void Player::init_board(const std::string& filename) const{
 void Player::move(){
 	std::cout << "move called" << std::endl;
 	Move temp_moves;
-	int arr_size = 0;
+	int arr_size = 0, available_moves_size = 0;
 
 	// gets the list of the available pieces
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
@@ -762,7 +751,7 @@ void Player::move(){
 
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
-        /*
+
 		// initializing the list of moves
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
@@ -770,9 +759,8 @@ void Player::move(){
 						 this->pimpl->board[available_pieces[i].first][available_pieces[i].second]};
 
 		// calculating all the available position for the current position
-		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board);
-         */
-        std::cout << "[" + std::to_string(available_pieces[i].first) + "; " + std::to_string(available_pieces[i].second) + "]" << std::endl;
+		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
+
 	}
 	
 	// deletes the array
