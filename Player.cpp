@@ -762,6 +762,7 @@ void Player::move(){
 
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
+        /*
 		// initializing the list of moves
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
@@ -770,6 +771,8 @@ void Player::move(){
 
 		// calculating all the available position for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board);
+         */
+        std::cout << "[" + std::to_string(available_pieces[i].first) + "; " + std::to_string(available_pieces[i].second) + "]" << std::endl;
 	}
 	
 	// deletes the array
@@ -858,7 +861,7 @@ int Player::recurrence() const{
 
 int main(){
 	try {
-		Player p1(1);
+		Player p1(2);
 		p1.init_board("./stored_board.txt");
 		p1.load_board("./stored_board.txt");
 		//p1.store_board("./stored_board.txt", 1);
