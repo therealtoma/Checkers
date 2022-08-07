@@ -369,6 +369,7 @@ struct Move{
 	}
 
 	void get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+
 	}
 
 };
