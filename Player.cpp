@@ -73,14 +73,14 @@ void delete_board(Player::piece** (&board)){
  * @param board the board to be printed
  */
 void print_board(Player::piece** (&board)){
-    std::cout << " ------------------ " << std::endl;
-    for(int i = 0; i < BOARD_SIZE; i++) {
+    std::cout << "----------------" << std::endl;
+    for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
             std::cout << convert_to_char(board[i][j]) << " ";
         }
         std::cout << std::endl;
     }
-    std::cout << " ------------------ " << std::endl;
+    std::cout << "----------------" << std::endl;
 }
 
 /**
@@ -462,6 +462,10 @@ struct Move{
                 }
             }
             temp_board[this->current_position.first][this->current_position.second] = Player::piece::e;
+            std::cout << "actual board:" << std::endl;
+            print_board(board);
+
+            std::cout << "temp board:" << std::endl;
             print_board(temp_board);
         }
 	}
