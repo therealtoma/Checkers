@@ -73,7 +73,14 @@ void delete_board(Player::piece** (&board)){
  * @param board the board to be printed
  */
 void print_board(Player::piece** (&board)){
-
+    std::cout << " ------------------ " << std::endl;
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            std::cout << convert_to_char(board[i][j]) << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << " ------------------ " << std::endl;
 }
 
 /**
@@ -391,7 +398,7 @@ struct Move{
             auto temp_board = initialize_board();
             // filling the temp board
             for(int filling_i = 0; filling_i < BOARD_SIZE; filling_i++){
-                for(int filling_j = 0; filling_i < BOARD_SIZE; filling_j++){
+                for(int filling_j = 0; filling_j < BOARD_SIZE; filling_j++){
                     temp_board[filling_i][filling_j] = board[filling_i][filling_j];
                 }
             }
@@ -848,6 +855,7 @@ void Player::move(){
 
 		// calculating all the available position for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
+        moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
 
 	}
 	
