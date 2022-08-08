@@ -68,6 +68,13 @@ void delete_board(Player::piece** (&board)){
 		delete[] board[i];
 	delete[] board;
 }
+/**
+ * prints the board
+ * @param board the board to be printed
+ */
+void print_board(Player::piece** (&board)){
+
+}
 
 /**
  * checks whether a file exists
@@ -84,6 +91,7 @@ struct Move{
 	std::pair<int, int>* available_moves;
 	std::pair<std::pair<int, int>, int>* evaluations;
 	Player::piece piece;
+
 	/**
 	 * gets an array of pair of all the positions of a specific piece of a specific board of a specific player
 	 * @param player_nr the player number
@@ -368,8 +376,87 @@ struct Move{
 
 	}
 
-	void get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+	void get_evaluations(Player::piece** board, int available_moves_size){
+        // the list of available moves is empty setting evaluation to nullptr and returning
+        if (this->available_moves == nullptr){
+            this->evaluations = nullptr;
+            return;
+        }
+        // allocating evaluations
+        this->evaluations = new std::pair<std::pair<int, int>, int>[available_moves_size];
 
+        // looping the available_moves array
+        for (int i = 0; i < available_moves_size; i++) {
+            // creating temporary board
+            auto temp_board = initialize_board();
+            // filling the temp board
+            for(int filling_i = 0; filling_i < BOARD_SIZE; filling_i++){
+                for(int filling_j = 0; filling_i < BOARD_SIZE; filling_j++){
+                    temp_board[filling_i][filling_j] = board[filling_i][filling_j];
+                }
+            }
+
+            // setting the values to check direction
+            int direction_x = this->available_moves[i].first - this->current_position.first;
+            int direction_y = this->available_moves[i].second - this->current_position.second;
+
+            // gone top
+            if (direction_y > 0) {
+                // right
+                if (direction_x > 0) {
+                    // has eaten
+                    if (direction_x >= 2) {
+                        temp_board[this->current_position.first + 1][this->current_position.second + 1] = Player::piece::e;
+                        temp_board[this->current_position.first + 2][this->current_position.second + 2] = this->piece;
+                    }
+                    // has not eaten
+                    else
+                        temp_board[this->current_position.first + 1][this->current_position.second + 1] = this->piece;
+
+                }
+                // left
+                else {
+                    // has eaten
+                    if (direction_x <= -2) {
+                        temp_board[this->current_position.first + 1][this->current_position.second - 1] = Player::piece::e;
+                        temp_board[this->current_position.first + 2][this->current_position.second - 2] = this->piece;
+                    }
+                    // has not eaten
+                    else
+                        temp_board[this->current_position.first + 1][this->current_position.second - 1] = this->piece;
+
+                }
+            }
+            // gone bottom
+            else {
+                // right
+                if (direction_x > 0) {
+                    // has eaten
+                    if (direction_x >= 2) {
+                        temp_board[this->current_position.first - 1][this->current_position.second + 1] = Player::piece::e;
+                        temp_board[this->current_position.first - 2][this->current_position.second + 2] = this->piece;
+                    }
+                    // has not eaten
+                    else
+                        temp_board[this->current_position.first - 1][this->current_position.second + 1] = this->piece;
+
+                }
+                // left
+                else {
+                    // has eaten
+                    if (direction_x <= -2) {
+                        temp_board[this->current_position.first - 1][this->current_position.second - 1] = Player::piece::e;
+                        temp_board[this->current_position.first - 2][this->current_position.second - 2] = this->piece;
+                    }
+                    // has not eaten
+                    else
+                        temp_board[this->current_position.first - 1][this->current_position.second - 1] = this->piece;
+
+                }
+            }
+            temp_board[this->current_position.first][this->current_position.second] = Player::piece::e;
+            print_board(temp_board);
+        }
 	}
 
 };
