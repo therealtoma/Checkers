@@ -125,7 +125,9 @@ struct Move{
 
 		auto valid_positions = new std::pair<int, int>[arr_size];
 		int count = 0;
+        // i = y
 		for(int i = 0; i < BOARD_SIZE; i++){
+            // j = x
 			for(int j = 0; j < BOARD_SIZE; j++) {
 				if(board[i][j] == piece_to_find || board[i][j] == dame_to_find) {
 					valid_positions[count] = std::make_pair(i, j);
@@ -159,12 +161,12 @@ struct Move{
         }
 
         // finding out if the piece is a checker or not
-        bool is_checker= (this->piece == Player::piece::X || this->piece == Player::piece::O);
+        bool is_checker = (this->piece == Player::piece::X || this->piece == Player::piece::O);
         int total_possible_moves = 0, actual_moves = 0;
         int player_nr = (this->piece == Player::piece::X || this->piece == Player::piece::x) ? 1 : 2;
         Player::piece checker_piece = Player::piece::e, normal_piece = Player::piece::e;
 
-        if(player_nr) {
+        if(player_nr == 1) {
             normal_piece = Player::piece::x;
             checker_piece= Player::piece::X;
         }
@@ -179,22 +181,22 @@ struct Move{
             this->available_moves = new std::pair<int, int>[total_possible_moves];
 
             // check if it can go top-left
-            if (position.first + 1 < BOARD_SIZE && position.second - 1 >= 0) {
+            if (position.second + 1 < BOARD_SIZE && position.first - 1 >= 0) {
                 // can't eat
-                if (board[position.first + 1][position.second - 1] == Player::piece::e) {
-                    this->available_moves[actual_moves] = std::make_pair(position.first + 1, position.second - 1);
+                if (board[position.second + 1][position.first - 1] == Player::piece::e) {
+                    this->available_moves[actual_moves] = std::make_pair(position.second + 1, position.first - 1);
                     actual_moves++;
                 }
                 else {
                     // we don't go outside the board
-                    if (position.first + 2 < BOARD_SIZE && position.second - 2 >= 0) {
+                    if (position.second + 2 < BOARD_SIZE && position.first - 2 >= 0) {
                         // the eatable piece is not a player's piece
-                        if (board[position.first + 1][position.second - 1] != normal_piece &&
-                            board[position.first + 1][position.second - 1] != checker_piece) {
+                        if (board[position.second + 1][position.first - 1] != normal_piece &&
+                            board[position.second + 1][position.first - 1] != checker_piece) {
                             // the final position is an empty space
-                            if (board[position.first + 2][position.second - 2] == Player::piece::e){
-                                this->available_moves[actual_moves] = std::make_pair(position.first + 2,
-                                                                                     position.second - 2);
+                            if (board[position.second + 2][position.first - 2] == Player::piece::e){
+                                this->available_moves[actual_moves] = std::make_pair(position.second + 2,
+                                                                                     position.first - 2);
                                 actual_moves++;
                             }
                         }
@@ -203,22 +205,22 @@ struct Move{
             }
 
             // check if it can go top-right
-            if (position.first + 1 < BOARD_SIZE && position.second + 1 < BOARD_SIZE) {
+            if (position.second + 1 < BOARD_SIZE && position.first + 1 < BOARD_SIZE) {
                 // can't eat
-                if (board[position.first + 1][position.second + 1] == Player::piece::e) {
-                    this->available_moves[actual_moves] = std::make_pair(position.first + 1, position.second + 1);
+                if (board[position.second + 1][position.first + 1] == Player::piece::e) {
+                    this->available_moves[actual_moves] = std::make_pair(position.second + 1, position.first + 1);
                     actual_moves++;
                 }
                 else {
                     // we don't go outside the board
-                    if (position.first + 2 < BOARD_SIZE && position.second + 2 >= 0) {
+                    if (position.second + 2 < BOARD_SIZE && position.first + 2 >= 0) {
                         // the eatable piece is not a player's piece
-                        if (board[position.first + 1][position.second + 1] != normal_piece &&
-                            board[position.first + 1][position.second + 1] != checker_piece) {
+                        if (board[position.second + 1][position.first + 1] != normal_piece &&
+                            board[position.second + 1][position.first + 1] != checker_piece) {
                             // the final position is an empty space
-                            if (board[position.first + 2][position.second + 2] == Player::piece::e){
-                                this->available_moves[actual_moves] = std::make_pair(position.first + 2,
-                                                                                     position.second + 2);
+                            if (board[position.second + 2][position.first + 2] == Player::piece::e){
+                                this->available_moves[actual_moves] = std::make_pair(position.second + 2,
+                                                                                     position.first + 2);
                                 actual_moves++;
                             }
                         }
@@ -227,22 +229,22 @@ struct Move{
             }
 
             // check if it can go bottom-right
-            if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE) {
+            if (position.second - 1 >= 0 && position.first + 1 < BOARD_SIZE) {
                 // can't eat
-                if (board[position.first - 1][position.second + 1] == Player::piece::e) {
-                    this->available_moves[actual_moves] = std::make_pair(position.first - 1, position.second + 1);
+                if (board[position.second - 1][position.first + 1] == Player::piece::e) {
+                    this->available_moves[actual_moves] = std::make_pair(position.second - 1, position.first + 1);
                     actual_moves++;
                 }
                 else {
                     // we don't go outside the board
-                    if (position.first - 2 >= 0 && position.second + 2 < BOARD_SIZE) {
+                    if (position.second - 2 >= 0 && position.first + 2 < BOARD_SIZE) {
                         // the eatable piece is not a player's piece
-                        if (board[position.first - 1][position.second + 1] != normal_piece &&
-                            board[position.first - 1][position.second + 1] != checker_piece) {
+                        if (board[position.second - 1][position.first + 1] != normal_piece &&
+                            board[position.second - 1][position.first + 1] != checker_piece) {
                             // the final position is an empty space
-                            if (board[position.first - 2][position.second + 2] == Player::piece::e){
-                                this->available_moves[actual_moves] = std::make_pair(position.first - 2,
-                                                                                     position.second + 2);
+                            if (board[position.second - 2][position.first + 2] == Player::piece::e){
+                                this->available_moves[actual_moves] = std::make_pair(position.second - 2,
+                                                                                     position.first + 2);
                                 actual_moves++;
                             }
                         }
@@ -251,22 +253,22 @@ struct Move{
             }
 
             // check if it can go bottom-left
-            if (position.first - 1 >= 0 && position.second - 1 >= 0) {
+            if (position.second - 1 >= 0 && position.first - 1 >= 0) {
                 // can't eat
-                if (board[position.first - 1][position.second - 1] == Player::piece::e) {
-                    this->available_moves[actual_moves] = std::make_pair(position.first - 1, position.second - 1);
+                if (board[position.second - 1][position.first - 1] == Player::piece::e) {
+                    this->available_moves[actual_moves] = std::make_pair(position.second - 1, position.first - 1);
                     actual_moves++;
                 }
                 else {
                     // we don't go outside the board
-                    if (position.first - 2 >= 0 && position.second - 2 >= 0) {
+                    if (position.second - 2 >= 0 && position.first - 2 >= 0) {
                         // the eatable piece is not a player's piece
-                        if (board[position.first - 1][position.second - 1] != normal_piece &&
-                            board[position.first - 1][position.second - 1] != checker_piece) {
+                        if (board[position.second - 1][position.first - 1] != normal_piece &&
+                            board[position.second - 1][position.first - 1] != checker_piece) {
                             // the final position is an empty space
-                            if (board[position.first - 2][position.second - 2] == Player::piece::e){
-                                this->available_moves[actual_moves] = std::make_pair(position.first - 2,
-                                                                                     position.second - 2);
+                            if (board[position.second - 2][position.first - 2] == Player::piece::e){
+                                this->available_moves[actual_moves] = std::make_pair(position.second - 2,
+                                                                                     position.first - 2);
                                 actual_moves++;
                             }
                         }
@@ -278,22 +280,22 @@ struct Move{
             total_possible_moves = 2;
             this->available_moves = new std::pair<int, int>[total_possible_moves];
             // player_nr == 1 the piece can only go top
-            if (player_nr) {
+            if (player_nr == 1) {
                 Player::piece enemy_checker = Player::piece::O;
                 // cheking if it can go top-right
-                if (position.first + 1 < BOARD_SIZE && position.second + 1 < BOARD_SIZE) {
-                    if (board[position.first + 1][position.second + 1] == Player::piece::e) {
-                        this->available_moves[actual_moves] = std::make_pair(position.first + 1,
-                                                                             position.second + 1);
+                if (position.second + 1 < BOARD_SIZE && position.first + 1 < BOARD_SIZE) {
+                    if (board[position.second + 1][position.first + 1] == Player::piece::e) {
+                        this->available_moves[actual_moves] = std::make_pair(position.second + 1,
+                                                                             position.first + 1);
                         actual_moves++;
                     }
                     else {
-                        if (position.first + 2 < BOARD_SIZE && position.second + 2 < BOARD_SIZE) {
-                            if(board[position.first + 2][position.second + 2] != enemy_checker) {
-                                if(board[position.first + 2][position.second + 2] != checker_piece
-                                && board[position.first + 2][position.second + 2] != normal_piece) {
-                                    this->available_moves[actual_moves] = std::make_pair(position.first + 2,
-                                                                                         position.second + 2);
+                        if (position.second + 2 < BOARD_SIZE && position.first + 2 < BOARD_SIZE) {
+                            if(board[position.second + 2][position.first + 2] != enemy_checker) {
+                                if(board[position.second + 2][position.first + 2] != checker_piece
+                                && board[position.second + 2][position.first + 2] != normal_piece) {
+                                    this->available_moves[actual_moves] = std::make_pair(position.second + 2,
+                                                                                         position.first + 2);
                                     actual_moves++;
                                 }
                             }
@@ -301,19 +303,19 @@ struct Move{
                     }
                 }
                 // cheking if it can go top-left
-                if (position.first + 1 < BOARD_SIZE && position.second - 1 >= 0) {
-                   if (board[position.first + 1][position.second - 1] == Player::piece::e) {
-                       this->available_moves[actual_moves] = std::make_pair(position.first + 1,
-                                                                            position.second - 1);
+                if (position.second + 1 < BOARD_SIZE && position.first - 1 >= 0) {
+                   if (board[position.second + 1][position.first - 1] == Player::piece::e) {
+                       this->available_moves[actual_moves] = std::make_pair(position.second + 1,
+                                                                            position.first - 1);
                        actual_moves++;
                    }
                    else {
-                       if (position.first + 2 < BOARD_SIZE && position.second - 2 >= 0) {
-                           if (board[position.first + 2][position.second - 2] != enemy_checker) {
-                               if (board[position.first + 2][position.second - 2] != checker_piece
-                                && board[position.first + 2][position.second - 2] != normal_piece) {
-                                   this->available_moves[actual_moves] = std::make_pair(position.first + 2,
-                                                                                        position.second - 2);
+                       if (position.second + 2 < BOARD_SIZE && position.first - 2 >= 0) {
+                           if (board[position.second + 2][position.first - 2] != enemy_checker) {
+                               if (board[position.second + 2][position.first - 2] != checker_piece
+                                && board[position.second + 2][position.first - 2] != normal_piece) {
+                                   this->available_moves[actual_moves] = std::make_pair(position.second + 2,
+                                                                                        position.first - 2);
                                    actual_moves++;
                                }
                            }
@@ -327,17 +329,17 @@ struct Move{
                 // chacking if it can go bottom-right
                 if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE) {
                     if (board[position.first - 1][position.second + 1] == Player::piece::e) {
-                        this->available_moves[actual_moves] = std::make_pair(position.first -1,
-                                                                             position.second +1);
+                        this->available_moves[actual_moves] = std::make_pair(position.first - 1,
+                                                                             position.second + 1);
                         actual_moves++;
                     }
                     else {
-                       if (position.first - 2 >= 0 && position.second + 2 < BOARD_SIZE) {
-                           if (board[position.first - 2][position.second + 2] != enemy_checker) {
-                                if (board[position.first - 2][position.second + 2] != checker_piece
-                                && board[position.first - 2][position.second + 2] != normal_piece) {
-                                   this->available_moves[actual_moves] = std::make_pair(position.first - 2,
-                                                                                        position.second + 2);
+                       if (position.second - 2 >= 0 && position.first + 2 < BOARD_SIZE) {
+                           if (board[position.second - 2][position.first + 2] != enemy_checker) {
+                                if (board[position.second - 2][position.first + 2] != checker_piece
+                                && board[position.second - 2][position.first + 2] != normal_piece) {
+                                   this->available_moves[actual_moves] = std::make_pair(position.second - 2,
+                                                                                        position.first + 2);
                                    actual_moves++;
                                }
                            }
@@ -345,19 +347,19 @@ struct Move{
                     }
                 }
                 // checking if it can go bottom-left
-                if (position.first - 1 >= 0 && position.second - 1 >= 0) {
-                    if (board[position.first - 1][position.second - 1] == Player::piece::e) {
-                        this->available_moves[actual_moves] = std::make_pair(position.first - 1,
-                                                                             position.second - 1);
+                if (position.second - 1 >= 0 && position.first - 1 >= 0) {
+                    if (board[position.second - 1][position.first - 1] == Player::piece::e) {
+                        this->available_moves[actual_moves] = std::make_pair(position.second - 1,
+                                                                             position.first - 1);
                         actual_moves++;
                     }
                     else {
-                        if (position.first - 2 >= 0 && position.second - 2 >= 0) {
-                            if (board[position.first - 2][position.second - 2] != enemy_checker) {
-                                if (board[position.first - 2][position.second - 2] != checker_piece
-                                && board[position.first - 2][position.second - 2] != normal_piece) {
-                                    this->available_moves[actual_moves] = std::make_pair(position.first - 2,
-                                                                                         position.second - 2);
+                        if (position.second - 2 >= 0 && position.first - 2 >= 0) {
+                            if (board[position.second - 2][position.first - 2] != enemy_checker) {
+                                if (board[position.second - 2][position.first - 2] != checker_piece
+                                && board[position.second - 2][position.first - 2] != normal_piece) {
+                                    this->available_moves[actual_moves] = std::make_pair(position.second - 2,
+                                                                                         position.first - 2);
                                     actual_moves++;
                                 }
                             }
@@ -375,13 +377,17 @@ struct Move{
             for (int i = 0; i < actual_moves; i++)
                 temp[i] = this->available_moves[i];
             delete[] this->available_moves;
-            this->available_moves = temp;
+            this->available_moves = new std::pair<int, int>[actual_moves];
+            for (int i = 0; i < actual_moves; i++)
+                this->available_moves[i] = temp[i];
             delete[] temp;
         }
 
         size = actual_moves;
+        std::cout << "get_available_moves ended " << std::endl;
 
-	}
+
+    }
 
 	void get_evaluations(Player::piece** board, int available_moves_size){
         // the list of available moves is empty setting evaluation to nullptr and returning
@@ -389,6 +395,7 @@ struct Move{
             this->evaluations = nullptr;
             return;
         }
+
         // allocating evaluations
         this->evaluations = new std::pair<std::pair<int, int>, int>[available_moves_size];
 
@@ -397,15 +404,23 @@ struct Move{
             // creating temporary board
             auto temp_board = initialize_board();
             // filling the temp board
-            for(int filling_i = 0; filling_i < BOARD_SIZE; filling_i++){
-                for(int filling_j = 0; filling_j < BOARD_SIZE; filling_j++){
-                    temp_board[filling_i][filling_j] = board[filling_i][filling_j];
+            for(int filling_y = 0; filling_y < BOARD_SIZE; filling_y++){
+                for(int filling_x = 0; filling_x < BOARD_SIZE; filling_x++){
+                    temp_board[filling_y][filling_x] = board[filling_y][filling_x];
                 }
             }
 
             // setting the values to check direction
-            int direction_x = this->available_moves[i].first - this->current_position.first;
-            int direction_y = this->available_moves[i].second - this->current_position.second;
+            int direction_y = this->available_moves[i].first - this->current_position.first;
+            int direction_x = this->available_moves[i].second - this->current_position.second;
+
+            // .first -> y
+            // .second -> x
+
+            std::cout << "direction_x: " << direction_x << ", direction_y: " << direction_y << std::endl;
+            std::cout << "starting coords: [" << this->current_position.first << "; " << this->current_position.second << "]" << std::endl;
+            std::cout << "final coords: [" << this->available_moves[i].first << "; " << this->available_moves[i].second << "]" << std::endl;
+            //std::cout << convert_to_char(board[4][7]) << std::endl;
 
             // gone top
             if (direction_y > 0) {
@@ -413,24 +428,24 @@ struct Move{
                 if (direction_x > 0) {
                     // has eaten
                     if (direction_x >= 2) {
-                        temp_board[this->current_position.first + 1][this->current_position.second + 1] = Player::piece::e;
-                        temp_board[this->current_position.first + 2][this->current_position.second + 2] = this->piece;
+                        temp_board[this->current_position.second + 1][this->current_position.first + 1] = Player::piece::e;
+                        temp_board[this->current_position.second + 2][this->current_position.first + 2] = this->piece;
                     }
                     // has not eaten
                     else
-                        temp_board[this->current_position.first + 1][this->current_position.second + 1] = this->piece;
+                        temp_board[this->current_position.second + 1][this->current_position.first + 1] = this->piece;
 
                 }
                 // left
                 else {
                     // has eaten
                     if (direction_x <= -2) {
-                        temp_board[this->current_position.first + 1][this->current_position.second - 1] = Player::piece::e;
-                        temp_board[this->current_position.first + 2][this->current_position.second - 2] = this->piece;
+                        temp_board[this->current_position.second + 1][this->current_position.first - 1] = Player::piece::e;
+                        temp_board[this->current_position.second + 2][this->current_position.first - 2] = this->piece;
                     }
                     // has not eaten
                     else
-                        temp_board[this->current_position.first + 1][this->current_position.second - 1] = this->piece;
+                        temp_board[this->current_position.second + 1][this->current_position.first - 1] = this->piece;
 
                 }
             }
@@ -440,8 +455,8 @@ struct Move{
                 if (direction_x > 0) {
                     // has eaten
                     if (direction_x >= 2) {
-                        temp_board[this->current_position.first - 1][this->current_position.second + 1] = Player::piece::e;
-                        temp_board[this->current_position.first - 2][this->current_position.second + 2] = this->piece;
+                        temp_board[this->current_position.second - 1][this->current_position.first + 1] = Player::piece::e;
+                        temp_board[this->current_position.second - 2][this->current_position.first + 2] = this->piece;
                     }
                     // has not eaten
                     else
@@ -452,8 +467,8 @@ struct Move{
                 else {
                     // has eaten
                     if (direction_x <= -2) {
-                        temp_board[this->current_position.first - 1][this->current_position.second - 1] = Player::piece::e;
-                        temp_board[this->current_position.first - 2][this->current_position.second - 2] = this->piece;
+                        temp_board[this->current_position.second - 1][this->current_position.first - 1] = Player::piece::e;
+                        temp_board[this->current_position.second - 2][this->current_position.first - 2] = this->piece;
                     }
                     // has not eaten
                     else
@@ -467,6 +482,8 @@ struct Move{
 
             std::cout << "temp board:" << std::endl;
             print_board(temp_board);
+
+            delete_board(temp_board);
         }
 	}
 
@@ -845,12 +862,12 @@ void Player::move(){
 	// gets the list of the available pieces
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
 
+
 	// creates the array of the moves
 	auto moves_list = new Move[arr_size];
 
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
-
 		// initializing the list of moves
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
@@ -861,11 +878,17 @@ void Player::move(){
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
         moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
 
+
 	}
-	
-	// deletes the array
+    for(int i = 0; i < arr_size; i++) {
+        delete[] moves_list[i].available_moves;
+        delete[] moves_list[i].evaluations;
+    }
+
+    // deletes the array
 	delete[] available_pieces;
 	delete[] moves_list;
+
 }
 /**
  * compares the latest two boards and checks if the move is valid
