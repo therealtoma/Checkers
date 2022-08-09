@@ -181,22 +181,22 @@ struct Move{
             this->available_moves = new std::pair<int, int>[total_possible_moves];
 
             // check if it can go top-left
-            if (position.second + 1 < BOARD_SIZE && position.first - 1 >= 0) {
+            if (position.first + 1 < BOARD_SIZE && position.second - 1 >= 0) {
                 // can't eat
-                if (board[position.second + 1][position.first - 1] == Player::piece::e) {
-                    this->available_moves[actual_moves] = std::make_pair(position.second + 1, position.first - 1);
+                if (board[position.first + 1][position.second - 1] == Player::piece::e) {
+                    this->available_moves[actual_moves] = std::make_pair(position.first + 1, position.second - 1);
                     actual_moves++;
                 }
                 else {
                     // we don't go outside the board
-                    if (position.second + 2 < BOARD_SIZE && position.first - 2 >= 0) {
+                    if (position.first + 2 < BOARD_SIZE && position.second - 2 >= 0) {
                         // the eatable piece is not a player's piece
-                        if (board[position.second + 1][position.first - 1] != normal_piece &&
-                            board[position.second + 1][position.first - 1] != checker_piece) {
+                        if (board[position.first + 1][position.second - 1] != normal_piece &&
+                            board[position.first + 1][position.second - 1] != checker_piece) {
                             // the final position is an empty space
-                            if (board[position.second + 2][position.first - 2] == Player::piece::e){
-                                this->available_moves[actual_moves] = std::make_pair(position.second + 2,
-                                                                                     position.first - 2);
+                            if (board[position.first + 2][position.first - 2] == Player::piece::e){
+                                this->available_moves[actual_moves] = std::make_pair(position.first + 2,
+                                                                                     position.second - 2);
                                 actual_moves++;
                             }
                         }
