@@ -1,7 +1,3 @@
 cmake-build-debug
 CMakeLists.txt
 Makefile
-.vs
-out
-CMakePresets.json
-CppProperties.json
