@@ -99,7 +99,7 @@ struct Move{
 	std::pair<std::pair<int, int>, int>* evaluations;
 	Player::piece piece;
 
-    enum evaluations {empty_move, become_checker, eat_piece, eat_checker, eat_piece_and_checker};
+    enum evaluations { empty_move, become_checker, eat_piece, eat_checker, eat_piece_and_checker };
 
 	/**
 	 * gets an array of pair of all the positions of a specific piece of a specific board of a specific player
@@ -921,6 +921,7 @@ void Player::move(){
 
 	// fills the array
 	for(int i = 0; i < arr_size; i++) {
+        //std::cout << "piece: " << available_pieces[i].first << "; " << available_pieces[i].second << std::endl;
 		// initializing the list of moves
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
@@ -929,15 +930,20 @@ void Player::move(){
 
 		// calculating all the available position for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
-        moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
+        //moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
+
+        for(int j = 0; j < available_moves_size; j++) {
+            std::cout << "position: " << moves_list[i].evaluations[j].first.first << ", " << moves_list[i].evaluations[j].first.second;
+            std::cout << "->" << moves_list[i].evaluations[j].second << std::endl;
+        }
 
 	}
+
+    // freeing the memory
     for(int i = 0; i < arr_size; i++) {
         delete[] moves_list[i].available_moves;
         delete[] moves_list[i].evaluations;
     }
-
-    // deletes the array
 	delete[] available_pieces;
 	delete[] moves_list;
 
@@ -1024,8 +1030,8 @@ int Player::recurrence() const{
 
 int main(){
 	try {
-		Player p1(1);
-		p1.init_board("./stored_board.txt");
+		Player p1(2);
+		//p1.init_board("./stored_board.txt");
 		p1.load_board("./stored_board.txt");
 		//p1.store_board("./stored_board.txt", 1);
 		p1.move();
