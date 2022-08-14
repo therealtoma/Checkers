@@ -147,6 +147,7 @@ struct Move{
 	 * finds all the possible positions the selected piece can go to
 	 * @param position the position to consider
 	 * @param board the board to check
+	 * @param size the size of the positions list
 	 */
 	void get_available_moves(std::pair<int, int> position, Player::piece** board, int &size) {
         // if the received position is not valid an exception is thrown
@@ -165,10 +166,13 @@ struct Move{
 
         // finding out if the piece is a checker or not
         bool is_checker = (this->piece == Player::piece::X || this->piece == Player::piece::O);
-        int total_possible_moves = 0, actual_moves = 0;
         int player_nr = (this->piece == Player::piece::X || this->piece == Player::piece::x) ? 1 : 2;
-        Player::piece checker_piece = Player::piece::e, normal_piece = Player::piece::e, enemy_checker = Player::piece::e;
 
+        // setting helpful variables to default values
+        Player::piece checker_piece = Player::piece::e, normal_piece = Player::piece::e, enemy_checker = Player::piece::e;
+        int total_possible_moves = 0, actual_moves = 0;
+
+        // finding the player_nr and changing variables accordingly
         if (player_nr == 1) {
             normal_piece = Player::piece::x;
             checker_piece = Player::piece::X;
