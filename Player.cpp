@@ -98,6 +98,7 @@ struct Move{
 	std::pair<int, int>* available_moves;
 	std::pair<std::pair<int, int>, int>* evaluations;
 	Player::piece piece;
+    int length;
 
     enum evaluations { empty_move, become_checker, eat_piece, eat_checker, eat_piece_and_checker };
 
@@ -446,6 +447,7 @@ struct Move{
         }
 
         size = actual_moves;
+        length = actual_moves;
     }
 
     /**
@@ -455,10 +457,14 @@ struct Move{
      *
      */
     int find_best_move(int size) {
-        if(size <= 0)
-            throw player_exception{player_exception::index_out_of_bounds, "ERROR: the inserted size is not valid. Received: " + size};
+        if(size <= 0) {
+            delete[] this->available_moves;
+            delete[] this->evaluations;
+            throw player_exception{player_exception::index_out_of_bounds, "ERROR: the inserted size is not valid. Received: " + std::to_string(size)};
+        }
         return 0;
     }
+
 
 };
 // end struct Move code
@@ -851,6 +857,8 @@ void Player::move(){
 		// calculating all the available position for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
         //moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
+
+        moves_list[i].find_best_move(-1);
 
         for(int j = 0; j < available_moves_size; j++) {
             std::cout << "position: " << moves_list[i].evaluations[j].first.first << ", " << moves_list[i].evaluations[j].first.second;
