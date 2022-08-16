@@ -448,6 +448,17 @@ struct Move{
         size = actual_moves;
     }
 
+    /**
+     * finds the position with the best possible move, in case of two equal moves a random one is chosen
+     * @param size the size of the evaluations array
+     * @return the posizion in the evaluations array with the best possible move
+     *
+     */
+    int find_best_move(int size) {
+        if(size <= 0)
+            throw player_exception{player_exception::index_out_of_bounds, "ERROR: the inserted size is not valid. Received: " + size};
+        return 0;
+    }
 
 };
 // end struct Move code
