@@ -1,5 +1,7 @@
 #include "player.hpp"
 #define BOARD_SIZE 8
+#define NUMBER_OF_x 12
+#define NUMBER_OF_o 12
 /**
  * converts a piece into char
  * @param p the piece to convert
@@ -18,7 +20,7 @@ char convert_to_char(Player::piece p){
         case Player::piece::e:
             return ' ';
     }
-    return '0';
+    throw player_exception{player_exception::invalid_board, "EXCEPTION: The insered piece is not valid"};
 }
 
 /**
@@ -41,7 +43,7 @@ Player::piece convert_to_piece(char c){
         default:
             break;
     }
-    return Player::piece::e;
+    throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted haracter is not valid"};
 }
 
 /**
@@ -76,7 +78,115 @@ bool file_exists(const std::string& filename){
     std::ifstream f(filename.c_str());
     return f.good();
 }
+// struct Move code
+struct Move{
+    std::pair<int, int> current_position;
+    std::pair<int, int>* available_moves;
+    std::pair<std::pair<int, int>, int>* evaluations;
+    Player::piece piece;
 
+    std::pair<int, int>* get_available_pieces(int player_nr, Player::piece** board, int &arr_size){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    arr_size++;
+            }
+        }
+
+        auto valid_positions = new std::pair<int, int>[arr_size];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(i, j);
+            }
+        }
+        return valid_positions;
+    }
+
+    void append(std::pair<int, int> element, std::pair<int, int>* &array, int &array_size){
+        array_size++;
+        auto new_array = new std::pair<int, int>[array_size];
+        for(int i = 0; i < array_size - 1 ; i++)
+            new_array[i] = array[i];
+        new_array[array_size - 1] = element;
+        delete[] array;
+        array = new_array;
+    }
+
+    // find available moves
+    std::pair<int, int>* get_available_moves(std::pair<int, int> position, Player::piece** board) {
+        int available_moves_number = 0;
+        auto available_moves = new std::pair<int, int>[available_moves_number];
+        Player::piece piece = board[position.first][position.second];
+
+        if(piece == Player::piece::X || piece == Player::piece::O) {
+            if(position.first == 0) {
+                switch (position.second) {
+                    case 0:
+                        // check if it can go top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        //  chech if it can go bottom-right
+                        break;
+                    default:
+                        //it can go either top-right or bottom-right
+                        break;
+                }
+            }
+            else if ( position.first == BOARD_SIZE - 1) {
+                switch (position.second){
+                    case 0:
+                        // can go top-left
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left
+                        break;
+                    default:
+                        // can go either top-left or bottom-left
+                        break;
+                }
+            }
+            else {
+                switch (position.second) {
+                    case 0:
+                        // can go top-left or top-right
+                        break;
+                    case BOARD_SIZE - 1:
+                        // can go bottom-left or bottom-right
+                        break;
+                    default:
+                        // can go any way
+                        break;
+                }
+            }
+        }
+        return available_moves;
+    }
+
+    /*std::pair<std::pair<int, int>, int>* get_evaluations(int player_nr, Player::piece** board, int &arr_size){
+        Player::piece piece_to_find = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+        Player::piece dame_to_find = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    arr_size++;
+            }
+        }
+
+        auto valid_positions = new std::pair<std::pair<int, int>, int>[arr_size];
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++) {
+                if(board[i][j] == piece_to_find || board[i][j] == dame_to_find)
+                    valid_positions[i] = std::make_pair(std::make_pair(i, j), 0);
+            }
+        }
+        return valid_positions;
+    }*/
+
+};
+// end struct Move code
 struct Player::Impl{
     Impl* next;
     Player::piece** board; // the dama board
@@ -89,12 +199,11 @@ struct Player::Impl{
  * @param player_nr the player number
  */
 Player::Player(int player_nr) {
-
     std::cout << "constructor called" << std::endl;
 
     //checks if player number is valid otherwise throws an exception
     if (player_nr != 1 && player_nr != 2)
-        throw player_exception{player_exception::index_out_of_bounds, "The player number can only be 1 or 2"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The player number can only be 1 or 2. Received " + std::to_string(player_nr)};
 
     pimpl = new Impl{nullptr, nullptr, 0, player_nr}; // initializes the memory
 
@@ -124,38 +233,42 @@ Player::~Player(){
  */
 Player::Player(const Player& copy){
     std::cout << "copy constructor called" << std::endl;
-    this->pimpl = new Impl{
-    nullptr,
-    initialize_board(),
-    copy.pimpl->index,
-        copy.pimpl->player_nr
-    };
-
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for(int j = 0; j < BOARD_SIZE; j++) {
-            this->pimpl->board[i][j] = copy.pimpl->board[i][j];
-        }
-    }
-
-    Impl* copy_temp = copy.pimpl;
-    Impl* this_temp = this->pimpl;
-
-    while(copy_temp->next) {
-        this_temp->next = new Impl{
-            nullptr,
-            initialize_board(),
-            this_temp->index + 1,
-            copy_temp->player_nr
+    if(copy.pimpl->board != nullptr) {
+        this->pimpl = new Impl{
+                nullptr,
+                initialize_board(),
+                copy.pimpl->index,
+                copy.pimpl->player_nr
         };
 
-        for(int i = 0; i < BOARD_SIZE; i++) {
-            for(int j = 0; j < BOARD_SIZE; j++) {
-                this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                this->pimpl->board[i][j] = copy.pimpl->board[i][j];
             }
         }
-        this_temp = this_temp->next;
-        copy_temp = copy_temp->next;
+
+        Impl *copy_temp = copy.pimpl;
+        Impl *this_temp = this->pimpl;
+
+        while (copy_temp->next) {
+            this_temp->next = new Impl{
+                    nullptr,
+                    initialize_board(),
+                    this_temp->index + 1,
+                    copy_temp->player_nr
+            };
+
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                for (int j = 0; j < BOARD_SIZE; j++) {
+                    this_temp->next->board[i][j] = copy_temp->next->board[i][j];
+                }
+            }
+            this_temp = this_temp->next;
+            copy_temp = copy_temp->next;
+        }
     }
+    else
+        this->pimpl = new Impl{nullptr, nullptr, copy.pimpl->index, copy.pimpl->player_nr};
 
 } // copy constructor
 
@@ -170,14 +283,15 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
     // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(r >= BOARD_SIZE || r < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted row is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted row is not valid. Reveived " + std::to_string(r)};
 
     // checkin if the row is within the range 0 <= r < BOARD_SIZE
     if(c >= BOARD_SIZE || c < 0)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted column is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted column is not valid. Received " + std::to_string(c)};
 
     Impl* temp = this->pimpl;
     int memory_size = 0;
+    (this->pimpl->board != nullptr) ? memory_size = 1 : throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
     // calculating memory size
     while(temp->next){
         temp = temp->next;
@@ -186,7 +300,7 @@ Player::piece Player::operator()(int r, int c, int history_offset) const{
 
     // checking history_offset validity
     if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
     // calculating the index of the chosen board
     int index = memory_size - 1;
@@ -286,35 +400,56 @@ void Player::load_board(const std::string& filename){
     }
 
     if(!file_exists(filename))
-        throw player_exception{player_exception::missing_file, "file not found"};
+        throw player_exception{player_exception::missing_file, "EXCEPTION: file " + filename + " does not exist"};
 
     std::fstream file(filename, std::fstream::in);
     Player::piece** board = initialize_board();
     char cella;
-    int read_characters = 0, i = BOARD_SIZE - 1, j = 0;
+    int read_characters = 0, i = BOARD_SIZE - 1, j = 0, count_x = 0, count_o = 0;
 
     while(file.get(cella)) {
         if(cella != '\n'){
+            // the file containes too many characters
+            if(i < 0) {
+                delete_board(board);
+                throw player_exception{player_exception::invalid_board,
+                                       "EXCEPTION: the board (" + filename + ") containes more values than it should."};
+            }
+            // a piece is in the white space
+            if((i + j) % 2 == 0 && cella != ' ') {
+                delete_board(board);
+                throw player_exception{player_exception::invalid_board,
+                                       "EXCEPTION: there's a piece in a not allowed space. Reading file " + filename};
+            }
+            // counts the number of o's and x's
+            if(cella == 'o' || cella == 'O') count_o++;
+            if(cella == 'x' || cella == 'X') count_x++;
 
             board[i][j] = convert_to_piece(cella);
-            std::cout << convert_to_char(board[i][j]);
             j++;
             read_characters++;
             if(j == BOARD_SIZE){
                 j = 0;
                 i--;
-                std::cout << std::endl;
             }
         }
         file.get(cella);
     }
     file.close();
 
-    if(read_characters!= BOARD_SIZE * BOARD_SIZE){
-
+    if(read_characters != BOARD_SIZE * BOARD_SIZE){
        delete_board(board);
+       throw player_exception{player_exception::invalid_board, "EXCEPTION: the selected board (" + filename+ ") is not valid. The problem is about it's size."};
+    }
 
-       throw player_exception{player_exception::invalid_board, "board not valid"};
+    if(count_x > NUMBER_OF_x){
+        delete_board(board);
+        throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many x pieces in the board (" + filename + ")"};
+    }
+
+    if(count_o > NUMBER_OF_o){
+        delete_board(board);
+        throw player_exception{player_exception::invalid_board, "EXCEPTION: there are too many o pieces in the board (" + filename + ")"};
     }
 
     for(i = 0; i < BOARD_SIZE; i++){
@@ -342,7 +477,7 @@ void Player::store_board(const std::string& filename, int history_offset) const{
     }
 
     if(history_offset >= memory_size)
-        throw player_exception{player_exception::index_out_of_bounds, "The inserted history_offset is not valid"};
+        throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
     int index = memory_size - 1;
     temp = this->pimpl;
@@ -376,27 +511,6 @@ void Player::init_board(const std::string& filename) const{
     // initial board
     std::cout << "init_board called" << std::endl;
 
-    Impl* temp = this->pimpl;
-    int last_index = this->pimpl->index;
-
-    if(this->pimpl->board == nullptr){
-        this->pimpl->board = initialize_board();
-        temp = this->pimpl;
-    }
-    else{
-        // goes to the end of the player list
-        while(temp->next) {
-            last_index++;
-            temp = temp->next;
-        }
-        temp->next = new Impl{
-                nullptr,
-                initialize_board(),
-                last_index + 1,
-                this->pimpl->player_nr
-        };
-        temp = temp->next;
-    }
     // allocates the memory
     Player::piece **initial_board = initialize_board();
 
@@ -405,17 +519,10 @@ void Player::init_board(const std::string& filename) const{
         for (int j = 0; j < BOARD_SIZE; j++) {
             if (i >= 0 && i <= 2)
                 ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::x;
-            else if (i >= 5)
+            else if (i >= 5 && i <= 7)
                 ((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
             else
                 initial_board[i][j] = Player::piece::e;
-        }
-    }
-
-    // filling the board
-    for(int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            temp->board[i][j] = initial_board[i][j];
         }
     }
 
@@ -424,8 +531,8 @@ void Player::init_board(const std::string& filename) const{
 
     for(int i = BOARD_SIZE - 1; i >= 0; i--) {
         for(int j = 0; j < BOARD_SIZE; j++) {
-            file << convert_to_char(temp->board[i][j]);
-            if(j != BOARD_SIZE - 1) file << ' ';
+            file << convert_to_char(initial_board[i][j]);
+            if(j != BOARD_SIZE - 1) file << " ";
         }
         if(i != 0)
             file << "\n";
@@ -435,7 +542,6 @@ void Player::init_board(const std::string& filename) const{
     // deletes the temporary variables
 
     delete_board(initial_board);
-    //deleteBoard(temp1->board);
 }
 
 /*
@@ -448,6 +554,12 @@ void Player::init_board(const std::string& filename) const{
   */
 void Player::move(){
     std::cout << "move called" << std::endl;
+    Move temp_moves;
+    int arr_size = 0;
+    auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
+    std::cout << "arr_size: " << arr_size << std::endl;
+    //Move* moves_list = new Move[arr_size];
+    delete[] available_pieces;
 }
 /**
  * compares the latest two boards and checks if the move is valid
@@ -464,7 +576,7 @@ void Player::pop(){
     std::cout << "pop called" << std::endl;
     if(this->pimpl->next == nullptr){
         if(this->pimpl->board == nullptr)
-            throw player_exception{player_exception::index_out_of_bounds, "The board is empty"};
+            throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The board is empty"};
         delete_board(this->pimpl->board);
         this->pimpl->board = nullptr;
     }
@@ -532,15 +644,9 @@ int Player::recurrence() const{
 int main(){
     try {
         Player p1(1);
-        Player p2(2);
-        p1.init_board("./ciao.txt");
-        p1.init_board("./ciao2.txt");
-        p1.pop();
-
-        //p1.load_board("./ciao.txt");
-        //p1.load_board("./ciao2.txt");
-        //p1.init_board("./ciao2.txt");
-        //std::cout << p1(0,0,1);
+        //p1.init_board("./stored_board.txt");
+        p1.load_board("./stored_board.txt");
+        //p1.store_board("./stored_board.txt", 1);
     }
     catch(player_exception& e){
         std::cout << e.msg << std::endl;
