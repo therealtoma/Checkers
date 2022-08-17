@@ -434,16 +434,26 @@ struct Move{
         }
         if (actual_moves == 0) {
             delete[] this->available_moves;
+            delete[] this->evaluations;
+            this->evaluations = nullptr;
             this->available_moves = nullptr;
         } else if (actual_moves != total_possible_moves) {
-            auto temp = new std::pair<int, int>[actual_moves];
-            for (int i = 0; i < actual_moves; i++)
-                temp[i] = this->available_moves[i];
+            auto temp_moves = new std::pair<int, int>[actual_moves];
+            auto temp_eval = new std::pair<std::pair<int,int>, int>[actual_moves];
+            for (int i = 0; i < actual_moves; i++) {
+                temp_moves[i] = this->available_moves[i];
+                temp_eval[i] = this->evaluations[i];
+            }
+            delete[] this->evaluations;
             delete[] this->available_moves;
             this->available_moves = new std::pair<int, int>[actual_moves];
-            for (int i = 0; i < actual_moves; i++)
-                this->available_moves[i] = temp[i];
-            delete[] temp;
+            this->evaluations = new std::pair<std::pair<int, int>, int>[actual_moves];
+            for (int i = 0; i < actual_moves; i++) {
+                this->available_moves[i] = temp_moves[i];
+                this->evaluations[i] = temp_eval[i];
+            }
+            delete[] temp_eval;
+            delete[] temp_moves;
         }
 
         size = actual_moves;
@@ -456,12 +466,11 @@ struct Move{
      * @return the posizion in the evaluations array with the best possible move
      *
      */
-    int find_best_move(int size) {
-        if(size <= 0) {
-            delete[] this->available_moves;
-            delete[] this->evaluations;
-            throw player_exception{player_exception::index_out_of_bounds, "ERROR: the inserted size is not valid. Received: " + std::to_string(size)};
-        }
+    int find_best_move() {
+        // if the array is empty or for some reason the length is not valid, we return -1
+        if(this->evaluations == nullptr)
+            return -1;
+
         return 0;
     }
 
@@ -854,14 +863,15 @@ void Player::move(){
 						 nullptr,
 						 this->pimpl->board[available_pieces[i].first][available_pieces[i].second]};
 
-		// calculating all the available position for the current position
+		// finding all the available moves for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
-        //moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
 
-        moves_list[i].find_best_move(-1);
+        //moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
+        int best_move = moves_list[i].find_best_move();
+        std::cout << best_move << std::endl;
 
         for(int j = 0; j < available_moves_size; j++) {
-            std::cout << "position: " << moves_list[i].evaluations[j].first.first << ", " << moves_list[i].evaluations[j].first.second;
+            std::cout << "position: [" << moves_list[i].evaluations[j].first.first << ", " << moves_list[i].evaluations[j].first.second << "]";
             std::cout << "->" << moves_list[i].evaluations[j].second << std::endl;
         }
 
@@ -874,6 +884,7 @@ void Player::move(){
     }
 	delete[] available_pieces;
 	delete[] moves_list;
+
 
 }
 /**
@@ -958,7 +969,7 @@ int Player::recurrence() const{
 
 int main(){
 	try {
-		Player p1(2);
+		Player p1(1);
 		//p1.init_board("./stored_board.txt");
 		p1.load_board("./stored_board.txt");
 		//p1.store_board("./stored_board.txt", 1);
