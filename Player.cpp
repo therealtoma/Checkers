@@ -1036,9 +1036,10 @@ void Player::move()
 
 		// filling the best moves array
 		best_moves[i] = moves_list[i].find_best_move();
+		std::cout << best_moves[i];
 	}
 
-	int final_move = find_max(best_moves, arr_size);
+	// int final_move = find_max(best_moves, arr_size);
 
 	// freeing the memory
 	for (int i = 0; i < arr_size; i++)
