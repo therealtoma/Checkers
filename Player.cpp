@@ -463,11 +463,10 @@ struct Move{
     /**
      * finds the position with the best possible move, in case of two equal moves a random one is chosen
      * @param size the size of the evaluations array
-     * @return the posizion in the evaluations array with the best possible move
-     *
+     * @return the position in the evaluations array with the best possible move, -1 in case the eavaluations array is empty
      */
     int find_best_move() {
-        // if the array is empty or for some reason the length is not valid, we return -1
+        // if the array is empty we return -1
         if(this->evaluations == nullptr)
             return -1;
 
