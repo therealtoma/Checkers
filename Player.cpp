@@ -102,6 +102,25 @@ bool file_exists(const std::string &filename)
 	std::ifstream f(filename.c_str());
 	return f.good();
 }
+
+/**
+ * finds the hiighest value in thge array
+ * @param arr tha array
+ * @param size the size of the array
+ * @return the hisghest value in the array
+ */
+int find_max(int arr[], int size)
+{
+	int max = arr[0];
+
+	for (int i = 0; i < size; i++)
+	{
+		if (arr[i] >= max)
+			max = arr[i];
+	}
+
+	return max;
+}
 // struct Move code
 struct Move
 {
@@ -550,7 +569,7 @@ struct Move
 	}
 
 	/**
-	 * finds the position with the best possible move, in case of two equal moves a random one is chosen
+	 * finds the position with the best possible move for a specific Move struct, in case of two equal moves a random one is chosen
 	 * @param size the size of the evaluations array
 	 * @return the position in the evaluations array with the best possible move, -1 in case the eavaluations array is empty
 	 */
@@ -997,6 +1016,8 @@ void Player::move()
 	// gets the list of the available pieces
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
 
+	int best_moves[arr_size];
+
 	// creates the array of the moves
 	auto moves_list = new Move[arr_size];
 
@@ -1013,16 +1034,11 @@ void Player::move()
 		// finding all the available moves for the current position
 		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
 
-		// moves_list[i].get_evaluations(this->pimpl->board, available_moves_size);
-		int best_move = moves_list[i].find_best_move();
-		std::cout << best_move << std::endl;
-
-		for (int j = 0; j < available_moves_size; j++)
-		{
-			std::cout << "position: [" << moves_list[i].evaluations[j].first.first << ", " << moves_list[i].evaluations[j].first.second << "]";
-			std::cout << "->" << moves_list[i].evaluations[j].second << std::endl;
-		}
+		// filling the best moves array
+		best_moves[i] = moves_list[i].find_best_move();
 	}
+
+	int final_move = find_max(best_moves, arr_size);
 
 	// freeing the memory
 	for (int i = 0; i < arr_size; i++)
