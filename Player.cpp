@@ -47,7 +47,25 @@ Player::piece convert_to_piece(char c)
 	default:
 		break;
 	}
-	throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted haracter is not valid"};
+	throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted character is not valid, received: " + std::to_string(c)};
+}
+
+Player::piece convert_to_checker(Player::piece p) {
+    switch (p) {
+        case Player::piece::x:
+            return Player::piece::X;
+        case Player::piece::o:
+            return Player::piece::O;
+        case Player::piece::X:
+            return Player::piece::x;
+        case Player::piece::O:
+            return Player::piece::o;
+        case Player::piece::e:
+            return Player::piece::e;
+    }
+
+    throw player_exception{player_exception::invalid_board, "ERROR: the passed piece is not valid"};
+
 }
 
 /**
@@ -115,8 +133,10 @@ int find_max(int arr[], int size)
 
 	for (int i = 0; i < size; i++)
 	{
-		if (arr[i] >= max)
+		if (arr[i] > max)
 			max = arr[i];
+        else if (arr[i] == max)
+            max = ((rand() % 100 + 1) % 2 == 0) ? max : arr[i];
 	}
 
 	return max;
@@ -862,7 +882,7 @@ void Player::load_board(const std::string &filename)
 				count_o++;
 			if (cella == 'x' || cella == 'X')
 				count_x++;
-
+            std::cout << "pos:" << i << " " << j << std::endl;
 			board[i][j] = convert_to_piece(cella);
 			j++;
 			read_characters++;
@@ -1009,6 +1029,14 @@ void Player::init_board(const std::string &filename) const
  */
 void Player::move()
 {
+    if(this->pimpl->board == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds, "ERROR: the move can't operate because the player contains no boards"};
+
+    Impl* temp = this->pimpl;
+    while(temp->next) {
+        temp = temp->next;
+    }
+
 	// std::cout << "move called" << std::endl;
 	Move temp_moves;
 	int arr_size = 0, available_moves_size = 0;
@@ -1016,7 +1044,6 @@ void Player::move()
 	// gets the list of the available pieces
 	auto available_pieces = temp_moves.get_available_pieces(this->pimpl->player_nr, this->pimpl->board, arr_size);
 
-	int best_moves[arr_size];
 
 	// creates the array of the moves
 	auto moves_list = new Move[arr_size];
@@ -1029,17 +1056,96 @@ void Player::move()
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
 						 nullptr,
-						 this->pimpl->board[available_pieces[i].first][available_pieces[i].second]};
+						 temp->board[available_pieces[i].first][available_pieces[i].second]};
 
 		// finding all the available moves for the current position
-		moves_list[i].get_available_moves(moves_list[i].current_position, this->pimpl->board, available_moves_size);
+		moves_list[i].get_available_moves(moves_list[i].current_position, temp->board, available_moves_size);
 
-		// filling the best moves array
-		best_moves[i] = moves_list[i].find_best_move();
-		std::cout << best_moves[i];
 	}
 
-	// int final_move = find_max(best_moves, arr_size);
+
+    int random_pos = rand() % arr_size;
+    auto final_move = moves_list[random_pos];
+    while(final_move.evaluations == nullptr) {
+        random_pos = rand() % arr_size;
+        final_move = moves_list[random_pos];
+    }
+    int best_move_index = final_move.find_best_move();
+    temp->next = new Impl {
+        nullptr,
+        initialize_board(),
+        temp->index + 1,
+        this->pimpl->player_nr
+    };
+    auto moved_board = temp->next->board;
+    for(int i = 0; i < BOARD_SIZE; i++) {
+        for(int j = 0; j < BOARD_SIZE; j++){
+            moved_board[i][j] = temp->board[i][j];
+        }
+    }
+
+    switch(final_move.evaluations[best_move_index].second) {
+        case Move::evaluations::empty_move:
+            moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
+            moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
+            break;
+        case Move::evaluations::become_checker:
+            moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
+            moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = convert_to_checker(
+                    final_move.piece);
+            break;
+        case Move::evaluations::eat_piece: {
+            moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
+            moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
+
+            int biggest_y = (final_move.current_position.first > final_move.evaluations[best_move_index].first.first)
+                            ? final_move.current_position.first - 1
+                            : final_move.evaluations[best_move_index].first.first - 1;
+
+            int biggest_x = (final_move.current_position.second > final_move.evaluations[best_move_index].first.second)
+                            ? final_move.current_position.second - 1
+                            : final_move.evaluations[best_move_index].first.second - 1;
+
+            moved_board[biggest_y][biggest_x] = Player::piece::e;
+
+            break;
+        }
+        case Move::evaluations::eat_checker:{
+            moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
+            moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
+
+            int biggest_y = (final_move.current_position.first > final_move.evaluations[best_move_index].first.first)
+                            ? final_move.current_position.first - 1
+                            : final_move.evaluations[best_move_index].first.first - 1;
+
+            int biggest_x = (final_move.current_position.second > final_move.evaluations[best_move_index].first.second)
+                            ? final_move.current_position.second - 1
+                            : final_move.evaluations[best_move_index].first.second - 1;
+
+            moved_board[biggest_y][biggest_x] = Player::piece::e;
+
+            break;
+        }
+        case Move::evaluations::eat_piece_and_checker:{
+            moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
+            moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = convert_to_checker(final_move.piece);
+
+            int biggest_y = (final_move.current_position.first > final_move.evaluations[best_move_index].first.first)
+                            ? final_move.current_position.first - 1
+                            : final_move.evaluations[best_move_index].first.first - 1;
+
+            int biggest_x = (final_move.current_position.second > final_move.evaluations[best_move_index].first.second)
+                            ? final_move.current_position.second - 1
+                            : final_move.evaluations[best_move_index].first.second - 1;
+
+            moved_board[biggest_y][biggest_x] = Player::piece::e;
+
+            break;
+        }
+    }
+
+    print_board(temp->board);
+    print_board(temp->next->board);
 
 	// freeing the memory
 	for (int i = 0; i < arr_size; i++)
