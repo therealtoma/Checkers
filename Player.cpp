@@ -50,6 +50,11 @@ Player::piece convert_to_piece(char c)
 	throw player_exception{player_exception::invalid_board, "EXCEPTION: The inserted character is not valid, received: " + std::to_string(c)};
 }
 
+/**
+ * converts a piece into a checker, the empty space stays default, if the piece does not exist an exception is thrown
+ * @param p the piece to convert
+ * @return the corrisponding checker piece
+ */
 Player::piece convert_to_checker(Player::piece p) {
     switch (p) {
         case Player::piece::x:
@@ -882,7 +887,6 @@ void Player::load_board(const std::string &filename)
 				count_o++;
 			if (cella == 'x' || cella == 'X')
 				count_x++;
-            std::cout << "pos:" << i << " " << j << std::endl;
 			board[i][j] = convert_to_piece(cella);
 			j++;
 			read_characters++;
@@ -1029,15 +1033,17 @@ void Player::init_board(const std::string &filename) const
  */
 void Player::move()
 {
+    // we throw an exception in case the player contains no boards
     if(this->pimpl->board == nullptr)
         throw player_exception{player_exception::index_out_of_bounds, "ERROR: the move can't operate because the player contains no boards"};
 
+    // pick the last board
     Impl* temp = this->pimpl;
     while(temp->next) {
         temp = temp->next;
     }
 
-	// std::cout << "move called" << std::endl;
+    // declaring some variables
 	Move temp_moves;
 	int arr_size = 0, available_moves_size = 0;
 
@@ -1051,7 +1057,6 @@ void Player::move()
 	// fills the array
 	for (int i = 0; i < arr_size; i++)
 	{
-		// std::cout << "piece: " << available_pieces[i].first << "; " << available_pieces[i].second << std::endl;
 		//  initializing the list of moves
 		moves_list[i] = {available_pieces[i],
 						 nullptr,
@@ -1063,13 +1068,14 @@ void Player::move()
 
 	}
 
-
+    // picking a random move
     int random_pos = rand() % arr_size;
     auto final_move = moves_list[random_pos];
     while(final_move.evaluations == nullptr) {
         random_pos = rand() % arr_size;
         final_move = moves_list[random_pos];
     }
+    // choosing the best move
     int best_move_index = final_move.find_best_move();
     temp->next = new Impl {
         nullptr,
@@ -1077,6 +1083,7 @@ void Player::move()
         temp->index + 1,
         this->pimpl->player_nr
     };
+    // copying the last board into the new one before actually making the moves
     auto moved_board = temp->next->board;
     for(int i = 0; i < BOARD_SIZE; i++) {
         for(int j = 0; j < BOARD_SIZE; j++){
@@ -1084,16 +1091,20 @@ void Player::move()
         }
     }
 
+    // finding what move needs to be done
     switch(final_move.evaluations[best_move_index].second) {
+        // we simply move the piece
         case Move::evaluations::empty_move:
             moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
             moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
             break;
+        // the piece became a ckecker
         case Move::evaluations::become_checker:
             moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
             moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = convert_to_checker(
                     final_move.piece);
             break;
+        // we ate a piece
         case Move::evaluations::eat_piece: {
             moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
             moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
@@ -1110,6 +1121,7 @@ void Player::move()
 
             break;
         }
+        // we ate a checker
         case Move::evaluations::eat_checker:{
             moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
             moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = final_move.piece;
@@ -1126,6 +1138,7 @@ void Player::move()
 
             break;
         }
+        // we ate a piece and converted to a checker
         case Move::evaluations::eat_piece_and_checker:{
             moved_board[final_move.current_position.first][final_move.current_position.second] = Player::piece::e;
             moved_board[final_move.evaluations[best_move_index].first.first][final_move.evaluations[best_move_index].first.second] = convert_to_checker(final_move.piece);
@@ -1250,8 +1263,8 @@ int main()
 	try
 	{
 		Player p1(1);
-		// p1.init_board("./stored_board.txt");
-		p1.load_board("./stored_board.txt");
+		// p1.init_board("./board.txt");
+		 p1.load_board("./board.txt");
 		// p1.store_board("./stored_board.txt", 1);
 		p1.move();
 	}
