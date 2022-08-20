@@ -1188,7 +1188,39 @@ void Player::move()
 bool Player::valid_move() const
 {
 	std::cout << "valid_move called" << std::endl;
-	return true;
+    if (this->pimpl->board == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+    Impl* temp = this->pimpl->next;
+    if(temp == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+    temp = temp->next;
+    if(temp == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+
+    bool is_valid = true;
+    auto latest_board = initialize_board();
+
+    for(int i = 0; i < BOARD_SIZE && is_valid; i++) {
+        for(int j = 0; j < BOARD_SIZE && is_valid; j++) {
+            // we are at te top of the board -> checking if a Player::piece::x gets correctly converted into Player::piece::X
+            if( i == 0 )
+                if( latest_board[i][j] == Player::piece::x ) is_valid = false;
+
+            // we are at the bottom of the board -> checking if a Player::piece::o gets correctly converted into Player::piece::O
+            if( i == BOARD_SIZE - 1 )
+                if (latest_board[i][j] == Player::piece::o) is_valid = false;
+
+            if ( (i + j % 2) == 0)
+                if (latest_board[i][j] != Player::piece::e) is_valid = false;
+
+        }
+    }
+
+
+    return true;
 }
 /**
  * deletes the latest board in the player memory
