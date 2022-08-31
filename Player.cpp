@@ -1166,6 +1166,7 @@ void Player::move()
         }
     }
 
+    // printing the board for testing
     print_board(temp->board);
     print_board(temp->next->board);
 
@@ -1183,6 +1184,7 @@ void Player::move()
 /**
  * compares the latest two boards and checks if the move is valid
  * @return true if the move is valid, false otherwise
+ * @throws player_exception in case the move is considered not valid
  */
 bool Player::valid_move() const
 {
@@ -1213,6 +1215,7 @@ bool Player::valid_move() const
     for(int i = 0; i < BOARD_SIZE && exit_check; i++) {
         for(int j = 0; j < BOARD_SIZE && exit_check; j++) {
 
+            // counting how many times the two board have the same pieces
             if ( temp->board[i][j] == latest_board[i][j] ) equality_counter++;
 
             // we are at te top of the board -> checking if a Player::piece::x gets correctly converted into Player::piece::X
@@ -1224,21 +1227,20 @@ bool Player::valid_move() const
                 if (latest_board[i][j] == Player::piece::o) exit_check = false;
 
             // if the position is dividible by 2, the piece is in a not allowed space
-            if ( (i + j % 2) == 0)
+            if ( (i + j % 2) == 0 )
                 if (latest_board[i][j] != Player::piece::e) exit_check = false;
-
         }
     }
     // throwing an exception in case
-    if (!exit_check)
+    if ( !exit_check )
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: An error occured in the latest board. \n GAME OVER!"};
 
-    if (equality_counter == BOARD_SIZE * BOARD_SIZE)
+    if ( equality_counter == BOARD_SIZE * BOARD_SIZE )
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the latest two boards are equal, no moves have been made. 1n GAME OVER."};
 
-    return true;
+    return exit_check;
 }
 /**
  * deletes the latest board in the player memory
