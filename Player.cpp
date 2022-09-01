@@ -127,7 +127,7 @@ bool file_exists(const std::string &filename)
 }
 
 /**
- * finds the hiighest value in thge array
+ * finds the highest value in thge array
  * @param arr tha array
  * @param size the size of the array
  * @return the hisghest value in the array
@@ -145,6 +145,28 @@ int find_max(int arr[], int size)
 	}
 
 	return max;
+}
+
+/**
+ * count the number of pieces left in the specified borad of the specified player
+ * @param board the board to check
+ * @param player_nr the player number
+ * @return the number of pieces left
+ */
+int count_pieces(Player::piece** board, int player_nr) {
+
+    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+
+    int n_pieces = 0;
+
+    for(int i = 0; i < BOARD_SIZE; i++){
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            if(board[i][j] == piece_to_check || board[i][j] == dame_to_check) n_pieces++;
+        }
+    }
+
+    return n_pieces;
 }
 // struct Move code
 struct Move
@@ -1276,7 +1298,19 @@ void Player::pop()
 bool Player::wins(int player_nr) const
 {
 	std::cout << "wins called" << std::endl;
-	return true;
+
+    if (this->pimpl->board == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds, "the player contains no boards"};
+
+    if(player_nr != 1 && player_nr != 2)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted player_nr is not valid"};
+
+    Impl* temp = this->pimpl;
+    while(temp->next)
+        temp = temp->next;
+
+    int n_pieces = count_pieces(temp->board, player_nr);
+	return (n_pieces == 0);
 }
 
 /**
@@ -1285,8 +1319,7 @@ bool Player::wins(int player_nr) const
  */
 bool Player::wins() const
 {
-	std::cout << "wins called" << std::endl;
-	return true;
+    return wins(this->pimpl->player_nr);
 }
 
 /**
@@ -1332,7 +1365,10 @@ int main()
         p1.load_board("./board.txt");
 		// p1.store_board("./stored_board.txt", 1);
 		p1.move();
-	}
+        bool w = p1.wins(2);
+        if(w) std::cout << "wins yes"<< std::endl;
+        else std::cout << "wins no" << std::endl;
+    }
 	catch (player_exception &e)
 	{
 		std::cout << e.msg << std::endl;
