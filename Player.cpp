@@ -1189,6 +1189,7 @@ void Player::move()
 bool Player::valid_move() const
 {
 	std::cout << "valid_move called" << std::endl;
+
     if (this->pimpl->board == nullptr)
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
@@ -1327,7 +1328,7 @@ int main()
 	try
 	{
 		Player p1(1);
-		// p1.init_board("./board.txt");
+		//p1.init_board("./board.txt");
         p1.load_board("./board.txt");
 		// p1.store_board("./stored_board.txt", 1);
 		p1.move();
