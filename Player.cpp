@@ -1330,7 +1330,7 @@ bool Player::wins() const
 bool Player::loses(int player_nr) const
 {
 	std::cout << "loses called" << std::endl;
-	return true;
+	return !(wins(player_nr));
 }
 
 /**
@@ -1340,7 +1340,7 @@ bool Player::loses(int player_nr) const
 bool Player::loses() const
 {
 	std::cout << "loses called" << std::endl;
-	return true;
+	return !(wins(this->pimpl->player_nr));
 }
 
 /**
