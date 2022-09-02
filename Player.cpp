@@ -127,7 +127,7 @@ bool file_exists(const std::string &filename)
 }
 
 /**
- * finds the hiighest value in thge array
+ * finds the highest value in thge array
  * @param arr tha array
  * @param size the size of the array
  * @return the hisghest value in the array
@@ -145,6 +145,28 @@ int find_max(int arr[], int size)
 	}
 
 	return max;
+}
+
+/**
+ * count the number of pieces left in the specified borad of the specified player
+ * @param board the board to check
+ * @param player_nr the player number
+ * @return the number of pieces left
+ */
+int count_pieces(Player::piece** board, int player_nr) {
+
+    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::x : Player::piece::o;
+    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+
+    int n_pieces = 0;
+
+    for(int i = 0; i < BOARD_SIZE; i++){
+        for(int j = 0; j < BOARD_SIZE; j++) {
+            if(board[i][j] == piece_to_check || board[i][j] == dame_to_check) n_pieces++;
+        }
+    }
+
+    return n_pieces;
 }
 // struct Move code
 struct Move
@@ -1069,7 +1091,6 @@ void Player::move()
         int temp_index = moves_list[i].find_best_move();
         best_evaluations[i] = (temp_index != -1) ? moves_list[i].evaluations[temp_index] : std::make_pair(std::make_pair(-1, -1), -1);
         best_positions[i] = (temp_index != -1) ? moves_list[i].current_position : std::make_pair(-1 ,-1);
-        std::cout << "best eval: "  << best_evaluations[i].second;
 	}
     // the variable containing the final move with its evaluation
     auto final_evaluation = best_evaluations[0];
@@ -1167,6 +1188,7 @@ void Player::move()
         }
     }
 
+    // printing the board for testing
     print_board(temp->board);
     print_board(temp->next->board);
 
@@ -1184,11 +1206,64 @@ void Player::move()
 /**
  * compares the latest two boards and checks if the move is valid
  * @return true if the move is valid, false otherwise
+ * @throws player_exception in case the move is considered not valid
  */
 bool Player::valid_move() const
 {
 	std::cout << "valid_move called" << std::endl;
-	return true;
+
+    if (this->pimpl->board == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+    Impl* temp = this->pimpl->next;
+    if(temp == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+    temp = temp->next;
+    if(temp == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
+
+    // flag to check if the latest two boards are equal
+    bool exit_check = true;
+    int equality_counter = 0;
+
+    // going to the penultimun board
+    while (temp->next->next != nullptr)
+        temp = temp->next;
+
+    auto latest_board = temp->next->board;
+
+    // looping the board
+    for(int i = 0; i < BOARD_SIZE && exit_check; i++) {
+        for(int j = 0; j < BOARD_SIZE && exit_check; j++) {
+
+            // counting how many times the two board have the same pieces
+            if ( temp->board[i][j] == latest_board[i][j] ) equality_counter++;
+
+            // we are at te top of the board -> checking if a Player::piece::x gets correctly converted into Player::piece::X
+            if( i == 0 )
+                if( latest_board[i][j] == Player::piece::x ) exit_check = false;
+
+            // we are at the bottom of the board -> checking if a Player::piece::o gets correctly converted into Player::piece::O
+            if( i == BOARD_SIZE - 1 )
+                if (latest_board[i][j] == Player::piece::o) exit_check = false;
+
+            // if the position is dividible by 2, the piece is in a not allowed space
+            if ( (i + j % 2) == 0 )
+                if (latest_board[i][j] != Player::piece::e) exit_check = false;
+        }
+    }
+    // throwing an exception in case
+    if ( !exit_check )
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: An error occured in the latest board. \n GAME OVER!"};
+
+    if ( equality_counter == BOARD_SIZE * BOARD_SIZE )
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the latest two boards are equal, no moves have been made. 1n GAME OVER."};
+
+    return exit_check;
 }
 /**
  * deletes the latest board in the player memory
@@ -1223,7 +1298,19 @@ void Player::pop()
 bool Player::wins(int player_nr) const
 {
 	std::cout << "wins called" << std::endl;
-	return true;
+
+    if (this->pimpl->board == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds, "the player contains no boards"};
+
+    if(player_nr != 1 && player_nr != 2)
+        throw player_exception{player_exception::index_out_of_bounds, "The inserted player_nr is not valid"};
+
+    Impl* temp = this->pimpl;
+    while(temp->next)
+        temp = temp->next;
+
+    int n_pieces = count_pieces(temp->board, player_nr);
+	return (n_pieces == 0);
 }
 
 /**
@@ -1232,8 +1319,7 @@ bool Player::wins(int player_nr) const
  */
 bool Player::wins() const
 {
-	std::cout << "wins called" << std::endl;
-	return true;
+    return wins(this->pimpl->player_nr);
 }
 
 /**
@@ -1275,11 +1361,14 @@ int main()
 	try
 	{
 		Player p1(1);
-		// p1.init_board("./board.txt");
+		//p1.init_board("./board.txt");
         p1.load_board("./board.txt");
 		// p1.store_board("./stored_board.txt", 1);
 		p1.move();
-	}
+        bool w = p1.wins(2);
+        if(w) std::cout << "wins yes"<< std::endl;
+        else std::cout << "wins no" << std::endl;
+    }
 	catch (player_exception &e)
 	{
 		std::cout << e.msg << std::endl;
