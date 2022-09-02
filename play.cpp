@@ -38,8 +38,13 @@ int main(int argc, char **argv){
 			p.store_board(board_name);
 			round++;
 
-		}
 
+		}
+        if(p.wins()){
+            std::cout << "recurrence: " << p.recurrence() << std::endl;
+            std::cout << "Player 1 won the game!" << std::endl;
+            return 0;
+        }
 	}
 
 }

@@ -1,4 +1,17 @@
 #include "player.hpp"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <thread>
+
+using std::cout;
+using std::cin;
+using std::endl;
+using std::ifstream;
+using std::string;
+
+
+
 #define BOARD_SIZE 8
 #define NUMBER_OF_x 12
 #define NUMBER_OF_o 12
@@ -155,8 +168,8 @@ int find_max(int arr[], int size)
  */
 int count_pieces(Player::piece** board, int player_nr) {
 
-    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::x : Player::piece::o;
-    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::o : Player::piece::x;
+    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::O : Player::piece::X;
 
     int n_pieces = 0;
 
@@ -1320,6 +1333,7 @@ bool Player::wins(int player_nr) const
 
     int n_pieces = count_pieces(temp->board, player_nr);
 	return (n_pieces == 0);
+    std::cout << "wins ended" << std::endl;
 }
 
 /**
@@ -1395,4 +1409,47 @@ int Player::recurrence() const {
     // returning the result
 	return count;
 }
+
+int main(int argc, char **argv){
+    //int player_nr = atoi(argv[1]);
+    int player_nr = 1;
+    Player p(player_nr);
+
+    cout << "Playing as player " << player_nr << endl;
+
+    int round = player_nr; // 1 or 2
+
+    try {
+        while (true) {
+
+            string board_name = "board_" + std::to_string(round) + ".txt";
+            ifstream infile(board_name);
+
+            if (infile.good()) {
+
+                cout << "Reading board " << board_name << endl;
+
+                infile.close();
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                p.load_board(board_name);
+                p.move();
+                board_name = "board_" + std::to_string(++round) + ".txt";
+                p.store_board(board_name);
+                round++;
+
+
+            }
+            if (p.wins()) {
+                std::cout << "recurrence: " << p.recurrence() << std::endl;
+                std::cout << "Player 1 won the game!" << std::endl;
+                return 0;
+            }
+        }
+    }
+    catch(player_exception &e){
+        std::cout << e.msg << std::endl;
+    }
+}
+
 
