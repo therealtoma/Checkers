@@ -1069,7 +1069,7 @@ void Player::move()
 
     // pick the last board
     Impl* temp = this->pimpl;
-    while(temp->next) {
+    while(temp->next != nullptr) {
         temp = temp->next;
     }
 
@@ -1395,3 +1395,4 @@ int Player::recurrence() const {
     // returning the result
 	return count;
 }
+
