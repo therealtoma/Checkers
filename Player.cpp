@@ -1352,27 +1352,38 @@ bool Player::loses() const
  */
 int Player::recurrence() const {
     std::cout << "recurrence called" << std::endl;
+    // if the board is empty an exception is thrown
     if (this->pimpl == nullptr)
         throw player_exception{player_exception::index_out_of_bounds, "The player contains no boards"};
 
+    // saving the first and the last board
     Impl *latest_board = this->pimpl;
     Impl *temp = this->pimpl;
 
+    // setting variables
     bool exit = false;
     int count = 0;
 
+    // going to the end
     while (latest_board->next)
         latest_board = latest_board->next;
 
-
+    // looping
     while (temp->next) {
         for (int i = 0; i < BOARD_SIZE && !exit; i++) {
             for (int j = 0; j < BOARD_SIZE && !exit; j++) {
+                // chcking if the two boards are equals
                 if (latest_board->board[i][j] != temp->board[i][j]) exit = true;
             }
         }
+        // if they are equal incrementing the counter
         if(!exit) count++;
+
+        // setting variables
+        exit = false;
+        temp = temp->next;
     }
+    // returning the result
 	return count;
 }
 
