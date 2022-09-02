@@ -1350,10 +1350,30 @@ bool Player::loses() const
  * in the history
  * @return the number of boards
  */
-int Player::recurrence() const
-{
-	std::cout << "recurrence called" << std::endl;
-	return 0;
+int Player::recurrence() const {
+    std::cout << "recurrence called" << std::endl;
+    if (this->pimpl == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds, "The player contains no boards"};
+
+    Impl *latest_board = this->pimpl;
+    Impl *temp = this->pimpl;
+
+    bool exit = false;
+    int count = 0;
+
+    while (latest_board->next)
+        latest_board = latest_board->next;
+
+
+    while (temp->next) {
+        for (int i = 0; i < BOARD_SIZE && !exit; i++) {
+            for (int j = 0; j < BOARD_SIZE && !exit; j++) {
+                if (latest_board->board[i][j] != temp->board[i][j]) exit = true;
+            }
+        }
+        if(!exit) count++;
+    }
+	return count;
 }
 
 int main()
