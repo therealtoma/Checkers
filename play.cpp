@@ -46,9 +46,9 @@ int main(int argc, char **argv){
             return 0;
         }
 	}
-
 }
 */
+
 // codice di andre
 #include "player.hpp"
 #include <iostream>

@@ -1142,6 +1142,7 @@ void Player::move()
     }
 
     Player::piece final_piece = moved_board[final_position.first][final_position.second];
+
     // finding what move needs to be done
     switch(final_evaluation.second) {
         // we simply move the piece
@@ -1408,5 +1409,3 @@ int Player::recurrence() const {
     // returning the result
 	return count;
 }
-
-
