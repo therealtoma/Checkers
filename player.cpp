@@ -1233,28 +1233,27 @@ bool Player::valid_move() const
 {
 	std::cout << "valid_move called" << std::endl;
 
-    if (this->pimpl->board == nullptr)
+    // controllo che esista la prima board
+    if (this->pimpl->board == nullptr )
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
-    Impl* temp = this->pimpl->next;
-    if(temp == nullptr)
-        throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
-    temp = temp->next;
-    /*
-    if(temp == nullptr)
-        throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
-*/
+    // controllo che esista la seconda board
+    else {
+        if(this->pimpl->next == nullptr)
+            throw player_exception{player_exception::index_out_of_bounds,
+                                   "ERROR: the move can't be verified because the player contains less than two boards"};
+    }
+    Impl* temp = this->pimpl;
     // flag to check if the latest two boards are equal
     bool exit_check = true;
     int equality_counter = 0;
 
-    // going to the penultimun board
-    while (temp != nullptr)
+    // going to the penultimum board
+    while (temp->next->next != nullptr)
         temp = temp->next;
 
-    auto latest_board = temp->board;
+    auto latest_board = temp->next->board;
+
 
     // looping the board
     for(int i = 0; i < BOARD_SIZE && exit_check; i++) {
@@ -1265,26 +1264,27 @@ bool Player::valid_move() const
 
             // we are at te top of the board -> checking if a Player::piece::x gets correctly converted into Player::piece::X
             if( i == 0 )
-                if( latest_board[i][j] == Player::piece::x ) exit_check = false;
+                if( latest_board[i][j] == Player::piece::o ) exit_check = false;
 
             // we are at the bottom of the board -> checking if a Player::piece::o gets correctly converted into Player::piece::O
             if( i == BOARD_SIZE - 1 )
-                if (latest_board[i][j] == Player::piece::o) exit_check = false;
+                if (latest_board[i][j] == Player::piece::x) exit_check = false;
 
             // if the position is dividible by 2, the piece is in a not allowed space
             if ( (i + j % 2) == 0 )
                 if (latest_board[i][j] != Player::piece::e) exit_check = false;
         }
     }
+    /*
     // throwing an exception in case
-    if ( !exit_check )
+    if ( exit_check )
         throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: An error occured in the latest board. \n GAME OVER!"};
+                               "ERROR: An error occured in the latest board. \nGAME OVER!"};
 
     if ( equality_counter == BOARD_SIZE * BOARD_SIZE )
         throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: the latest two boards are equal, no moves have been made. 1n GAME OVER."};
-
+                               "ERROR: the latest two boards are equal, no moves have been made. \nGAME OVER."};
+*/
     return exit_check;
 }
 /**
