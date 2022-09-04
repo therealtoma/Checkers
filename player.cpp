@@ -535,7 +535,7 @@ struct Move
 					{
 						this->available_moves[actual_moves] = std::make_pair(position.first - 1,
 																			 position.second + 1);
-						(position.first == 0)
+						(position.first - 1 == 0)
 							? this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], become_checker)
 							: this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], empty_move);
 
@@ -571,7 +571,7 @@ struct Move
 						this->available_moves[actual_moves] = std::make_pair(position.first - 1,
 																			 position.second - 1);
 
-						(position.first == 0)
+						(position.first - 1 == 0)
 							? this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], become_checker)
 							: this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], empty_move);
 						actual_moves++;
