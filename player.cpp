@@ -1,16 +1,4 @@
 #include "player.hpp"
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <thread>
-
-using std::cout;
-using std::cin;
-using std::endl;
-using std::ifstream;
-using std::string;
-
-
 
 #define BOARD_SIZE 8
 #define NUMBER_OF_x 12
@@ -120,9 +108,7 @@ void print_board(Player::piece **(&board))
 	for (int i = BOARD_SIZE - 1; i >= 0; i--)
 	{
 		for (int j = 0; j < BOARD_SIZE; j++)
-		{
 			std::cout << convert_to_char(board[i][j]);
-		}
 		std::cout << std::endl;
 	}
 	std::cout << "----------------" << std::endl;
@@ -680,7 +666,6 @@ struct Player::Impl
  */
 Player::Player(int player_nr)
 {
-	std::cout << "constructor called" << std::endl;
 
 	// checks if player number is valid otherwise throws an exception
 	if (player_nr != 1 && player_nr != 2)
@@ -695,7 +680,6 @@ Player::Player(int player_nr)
  */
 Player::~Player()
 {
-	std::cout << "destructor called" << std::endl;
 	// loops the list
 	while (pimpl != nullptr)
 	{
@@ -716,7 +700,6 @@ Player::~Player()
  */
 Player::Player(const Player &copy)
 {
-	std::cout << "copy constructor called" << std::endl;
 	if (copy.pimpl->board != nullptr)
 	{
 		this->pimpl = new Impl{
@@ -813,7 +796,6 @@ Player::piece Player::operator()(int r, int c, int history_offset) const
  */
 Player &Player::operator=(const Player &p)
 {
-	std::cout << "operator= called" << std::endl;
 	// avoiding self assignment
 	if (&p != this)
 	{
@@ -871,7 +853,6 @@ Player &Player::operator=(const Player &p)
  */
 void Player::load_board(const std::string &filename)
 {
-	std::cout << "load board called" << std::endl;
 
 	Impl *temp = this->pimpl;
 	int last_index = this->pimpl->index;
@@ -976,7 +957,6 @@ void Player::load_board(const std::string &filename)
  */
 void Player::store_board(const std::string &filename, int history_offset) const
 {
-	std::cout << "store_board called" << std::endl;
 
 	Impl *temp = this->pimpl;
 	int memory_size = 0;
@@ -1016,7 +996,6 @@ void Player::store_board(const std::string &filename, int history_offset) const
 
 	file.close();
 
-    print_board(temp->board);
 }
 
 /**
@@ -1026,7 +1005,6 @@ void Player::store_board(const std::string &filename, int history_offset) const
 void Player::init_board(const std::string &filename) const
 {
 	// initial board
-	std::cout << "init_board called" << std::endl;
 
 	// allocates the memory
 	Player::piece **initial_board = initialize_board();
@@ -1066,7 +1044,7 @@ void Player::init_board(const std::string &filename) const
 	delete_board(initial_board);
 }
 
-/*
+/**
  * make a move starting from the most recent board in the history.
  * move one piece of this player, and possibly remove pieces of the other
  * player if they have been eaten.
@@ -1209,9 +1187,6 @@ void Player::move()
         }
     }
 
-    // printing the board for testing
-    //print_board(temp->board);
-    //print_board(temp->next->board);
 
 	// freeing the memory
 	for (int i = 0; i < arr_size; i++)
@@ -1231,7 +1206,6 @@ void Player::move()
  */
 bool Player::valid_move() const
 {
-	std::cout << "valid_move called" << std::endl;
 
     // controllo che esista la prima board
     if (this->pimpl->board == nullptr )
@@ -1275,16 +1249,6 @@ bool Player::valid_move() const
                 if (latest_board[i][j] != Player::piece::e) exit_check = false;
         }
     }
-    /*
-    // throwing an exception in case
-    if ( exit_check )
-        throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: An error occured in the latest board. \nGAME OVER!"};
-
-    if ( equality_counter == BOARD_SIZE * BOARD_SIZE )
-        throw player_exception{player_exception::index_out_of_bounds,
-                               "ERROR: the latest two boards are equal, no moves have been made. \nGAME OVER."};
-*/
     return exit_check;
 }
 /**
@@ -1292,7 +1256,6 @@ bool Player::valid_move() const
  */
 void Player::pop()
 {
-	std::cout << "pop called" << std::endl;
 	if (this->pimpl->next == nullptr)
 	{
 		if (this->pimpl->board == nullptr)
@@ -1319,7 +1282,6 @@ void Player::pop()
  */
 bool Player::wins(int player_nr) const
 {
-	std::cout << "wins called" << std::endl;
 
     if (this->pimpl->board == nullptr)
         throw player_exception{player_exception::index_out_of_bounds, "the player contains no boards"};
@@ -1333,7 +1295,6 @@ bool Player::wins(int player_nr) const
 
     int n_pieces = count_pieces(temp->board, player_nr);
 	return (n_pieces == 0);
-    std::cout << "wins ended" << std::endl;
 }
 
 /**
@@ -1352,7 +1313,6 @@ bool Player::wins() const
  */
 bool Player::loses(int player_nr) const
 {
-	std::cout << "loses called" << std::endl;
 	return !(wins(player_nr));
 }
 
@@ -1362,7 +1322,6 @@ bool Player::loses(int player_nr) const
  */
 bool Player::loses() const
 {
-	std::cout << "loses called" << std::endl;
 	return !(wins(this->pimpl->player_nr));
 }
 
@@ -1374,7 +1333,6 @@ bool Player::loses() const
  * @return the number of boards
  */
 int Player::recurrence() const {
-    std::cout << "recurrence called" << std::endl;
     // if the board is empty an exception is thrown
     if (this->pimpl == nullptr)
         throw player_exception{player_exception::index_out_of_bounds, "The player contains no boards"};
