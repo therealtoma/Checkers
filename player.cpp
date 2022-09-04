@@ -1,4 +1,17 @@
 #include "player.hpp"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <thread>
+
+using std::cout;
+using std::cin;
+using std::endl;
+using std::ifstream;
+using std::string;
+
+
+
 #define BOARD_SIZE 8
 #define NUMBER_OF_x 12
 #define NUMBER_OF_o 12
@@ -155,8 +168,8 @@ int find_max(int arr[], int size)
  */
 int count_pieces(Player::piece** board, int player_nr) {
 
-    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::x : Player::piece::o;
-    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::X : Player::piece::O;
+    Player::piece piece_to_check = (player_nr == 1) ? Player::piece::o : Player::piece::x;
+    Player::piece dame_to_check = (player_nr == 1) ? Player::piece::O : Player::piece::X;
 
     int n_pieces = 0;
 
@@ -460,7 +473,9 @@ struct Move
 						{
 							if (board[position.first + 1][position.second + 1] != enemy_checker)
 							{
-								if (board[position.first + 1][position.second + 1] != checker_piece && board[position.first + 1][position.second + 1] != normal_piece)
+								if (board[position.first + 1][position.second + 1] != checker_piece
+                                && board[position.first + 1][position.second + 1] != normal_piece
+                                && board[position.first + 2][position.second + 2] == Player::piece::e)
 								{
 									this->available_moves[actual_moves] = std::make_pair(position.first + 2,
 																						 position.second + 2);
@@ -494,7 +509,9 @@ struct Move
 						{
 							if (board[position.first + 1][position.second - 1] != enemy_checker)
 							{
-								if (board[position.first + 1][position.second - 1] != checker_piece && board[position.first + 1][position.second - 1] != normal_piece)
+								if (board[position.first + 1][position.second - 1] != checker_piece
+                                && board[position.first + 1][position.second - 1] != normal_piece
+                                && board[position.first + 2][position.second - 2] == Player::piece::e)
 								{
 									this->available_moves[actual_moves] = std::make_pair(position.first + 2,
 																						 position.second - 2);
@@ -513,8 +530,7 @@ struct Move
 			else
 			{
 				// chacking if it can go bottom-right
-				if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE)
-				{
+				if (position.first - 1 >= 0 && position.second + 1 < BOARD_SIZE){
 					if (board[position.first - 1][position.second + 1] == Player::piece::e)
 					{
 						this->available_moves[actual_moves] = std::make_pair(position.first - 1,
@@ -531,7 +547,9 @@ struct Move
 						{
 							if (board[position.first - 1][position.second + 1] != enemy_checker)
 							{
-								if (board[position.first - 1][position.second + 1] != checker_piece && board[position.first - 1][position.second + 1] != normal_piece)
+								if (board[position.first - 1][position.second + 1] != checker_piece
+                                && board[position.first - 1][position.second + 1] != normal_piece
+                                && board[position.first - 2][position.second + 2] == Player::piece::e)
 								{
 									this->available_moves[actual_moves] = std::make_pair(position.first - 2,
 																						 position.second + 2);
@@ -547,14 +565,13 @@ struct Move
 					}
 				}
 				// checking if it can go bottom-left
-				if (position.first - 1 >= 0 && position.second - 1 >= 0)
-				{
+				if (position.first - 1 >= 0 && position.second - 1 >= 0){
 					if (board[position.first - 1][position.second - 1] == Player::piece::e)
 					{
 						this->available_moves[actual_moves] = std::make_pair(position.first - 1,
 																			 position.second - 1);
 
-						(position.first - 1 == 0)
+						(position.first == 0)
 							? this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], become_checker)
 							: this->evaluations[actual_moves] = std::make_pair(this->available_moves[actual_moves], empty_move);
 						actual_moves++;
@@ -565,7 +582,9 @@ struct Move
 						{
 							if (board[position.first - 1][position.second - 1] != enemy_checker)
 							{
-								if (board[position.first - 1][position.second - 1] != checker_piece && board[position.first - 1][position.second - 1] != normal_piece)
+								if (board[position.first - 1][position.second - 1] != checker_piece
+                                && board[position.first - 1][position.second - 1] != normal_piece
+                                && board[position.first - 2][position.second - 2] == Player::piece::e)
 								{
 									this->available_moves[actual_moves] = std::make_pair(position.first - 2,
 																						 position.second - 2);
@@ -962,7 +981,7 @@ void Player::store_board(const std::string &filename, int history_offset) const
 	Impl *temp = this->pimpl;
 	int memory_size = 0;
 
-	while (temp->next)
+	while (temp->next != nullptr)
 	{
 		temp = temp->next;
 		memory_size++;
@@ -971,10 +990,10 @@ void Player::store_board(const std::string &filename, int history_offset) const
 	if (history_offset >= memory_size)
 		throw player_exception{player_exception::index_out_of_bounds, "EXCEPTION: The inserted history_offset is not valid. Received " + std::to_string(history_offset)};
 
-	int index = memory_size - 1;
+	int index = memory_size - history_offset;
 	temp = this->pimpl;
 
-	while (index != history_offset)
+	while (index != 0)
 	{
 		temp = temp->next;
 		index--;
@@ -996,6 +1015,8 @@ void Player::store_board(const std::string &filename, int history_offset) const
 	}
 
 	file.close();
+
+    print_board(temp->board);
 }
 
 /**
@@ -1061,7 +1082,7 @@ void Player::move()
 
     // pick the last board
     Impl* temp = this->pimpl;
-    while(temp->next) {
+    while(temp->next != nullptr) {
         temp = temp->next;
     }
 
@@ -1121,7 +1142,6 @@ void Player::move()
     }
 
     Player::piece final_piece = moved_board[final_position.first][final_position.second];
-
     // finding what move needs to be done
     switch(final_evaluation.second) {
         // we simply move the piece
@@ -1189,8 +1209,8 @@ void Player::move()
     }
 
     // printing the board for testing
-    print_board(temp->board);
-    print_board(temp->next->board);
+    //print_board(temp->board);
+    //print_board(temp->next->board);
 
 	// freeing the memory
 	for (int i = 0; i < arr_size; i++)
@@ -1220,19 +1240,20 @@ bool Player::valid_move() const
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
     temp = temp->next;
+    /*
     if(temp == nullptr)
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
-
+*/
     // flag to check if the latest two boards are equal
     bool exit_check = true;
     int equality_counter = 0;
 
     // going to the penultimun board
-    while (temp->next->next != nullptr)
+    while (temp != nullptr)
         temp = temp->next;
 
-    auto latest_board = temp->next->board;
+    auto latest_board = temp->board;
 
     // looping the board
     for(int i = 0; i < BOARD_SIZE && exit_check; i++) {
@@ -1311,6 +1332,7 @@ bool Player::wins(int player_nr) const
 
     int n_pieces = count_pieces(temp->board, player_nr);
 	return (n_pieces == 0);
+    std::cout << "wins ended" << std::endl;
 }
 
 /**
@@ -1330,7 +1352,7 @@ bool Player::wins() const
 bool Player::loses(int player_nr) const
 {
 	std::cout << "loses called" << std::endl;
-	return true;
+	return !(wins(player_nr));
 }
 
 /**
@@ -1340,7 +1362,7 @@ bool Player::loses(int player_nr) const
 bool Player::loses() const
 {
 	std::cout << "loses called" << std::endl;
-	return true;
+	return !(wins(this->pimpl->player_nr));
 }
 
 /**
@@ -1350,28 +1372,41 @@ bool Player::loses() const
  * in the history
  * @return the number of boards
  */
-int Player::recurrence() const
-{
-	std::cout << "recurrence called" << std::endl;
-	return 0;
+int Player::recurrence() const {
+    std::cout << "recurrence called" << std::endl;
+    // if the board is empty an exception is thrown
+    if (this->pimpl == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds, "The player contains no boards"};
+
+    // saving the first and the last board
+    Impl *latest_board = this->pimpl;
+    Impl *temp = this->pimpl;
+
+    // setting variables
+    bool exit = false;
+    int count = 0;
+
+    // going to the end
+    while (latest_board->next)
+        latest_board = latest_board->next;
+
+    // looping
+    while (temp->next) {
+        for (int i = 0; i < BOARD_SIZE && !exit; i++) {
+            for (int j = 0; j < BOARD_SIZE && !exit; j++) {
+                // chcking if the two boards are equals
+                if (latest_board->board[i][j] != temp->board[i][j]) exit = true;
+            }
+        }
+        // if they are equal incrementing the counter
+        if(!exit) count++;
+
+        // setting variables
+        exit = false;
+        temp = temp->next;
+    }
+    // returning the result
+	return count;
 }
 
-int main()
-{
-	try
-	{
-		Player p1(1);
-		//p1.init_board("./board.txt");
-        p1.load_board("./board.txt");
-		// p1.store_board("./stored_board.txt", 1);
-		p1.move();
-        bool w = p1.wins(2);
-        if(w) std::cout << "wins yes"<< std::endl;
-        else std::cout << "wins no" << std::endl;
-    }
-	catch (player_exception &e)
-	{
-		std::cout << e.msg << std::endl;
-	}
-	return 0;
-}
+
