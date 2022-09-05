@@ -19,36 +19,39 @@ int main(int argc, char **argv){
 	cout << "Playing as player " << player_nr << endl;
 
 	int round = player_nr; // 1 or 2
+    try {
+        while (true) {
 
-	while(true){
+            string board_name = "board_" + std::to_string(round) + ".txt";
+            ifstream infile(board_name);
 
-		string board_name =  "board_" + std::to_string(round) + ".txt";
-		ifstream infile(board_name);
+            if (infile.good()) {
 
-		if(infile.good()){
+                cout << "Reading board " << board_name << endl;
 
-			cout << "Reading board " << board_name << endl;
+                infile.close();
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-			infile.close();
-			std::this_thread::sleep_for (std::chrono::milliseconds(100));
-
-			p.load_board(board_name);
-			p.move();
-			board_name =  "board_" + std::to_string(++round) + ".txt";
-			p.store_board(board_name);
-			round++;
+                p.load_board(board_name);
+                p.move();
+                board_name = "board_" + std::to_string(++round) + ".txt";
+                p.store_board(board_name);
+                round++;
 
 
-		}
-        if(p.wins()){
-            std::cout << "recurrence: " << p.recurrence() << std::endl;
-            std::cout << "Player 1 won the game!" << std::endl;
-            return 0;
+            }
+            if (p.wins()) {
+                std::cout << "recurrence: " << p.recurrence() << std::endl;
+                std::cout << "Player 1 won the game!" << std::endl;
+                return 0;
+            }
         }
-	}
+    }
+    catch (player_exception &e){
+        std::cout << e.msg << std::endl;
+    }
 }
 */
-
 // codice di andre
 #include "player.hpp"
 #include <iostream>
@@ -80,21 +83,23 @@ int main(int argc, char **argv) {
         p2.store_board("board_2.txt");
 
         int round = 2;
+        try {
+            while (p1.valid_move() && p2.valid_move() && !p1.wins() && !p2.wins()) {
 
-        while (/*p1.valid_move() && p2.valid_move() && */ !p1.wins() && !p2.wins()) {
+                p1.load_board("board_" + std::to_string(round) + ".txt");
+                p1.move();
+                p1.store_board("board_" + std::to_string(++round) + ".txt");
 
-            p1.load_board("board_" + std::to_string(round) + ".txt");
-            p1.move();
-            p1.store_board("board_" + std::to_string(++round) + ".txt");
+                p2.load_board("board_" + std::to_string(round) + ".txt");
+                p2.move();
+                p2.store_board("board_" + std::to_string(++round) + ".txt");
 
-            p2.load_board("board_" + std::to_string(round) + ".txt");
-            p2.move();
-            p2.store_board("board_" + std::to_string(++round) + ".txt");
+                std::cout << "round: " << round << std::endl;
 
-            std::cout << "round: " << round << std::endl;
-
+            }
+        }catch (player_exception &e) {
+            std::cout << e.msg << std::endl;
         }
-
         (p1.wins()) ? cout << "Player 1 wins!" << endl : cout << "Player 2 wins!" << endl;
 
         p2.store_board("board_exit.txt", 0);
