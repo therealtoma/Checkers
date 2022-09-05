@@ -1009,6 +1009,19 @@ void Player::init_board(const std::string &filename) const
 	// allocates the memory
 	Player::piece **initial_board = initialize_board();
 
+    // going to the end of the player memory
+    Impl* temp = this->pimpl;
+    while(temp->next != nullptr)
+        temp = temp->next;
+
+    // creating a new memory space
+    temp->next = new Impl {
+        nullptr,
+        initialize_board(),
+        temp->index+1,
+        this->pimpl->player_nr
+    };
+
 	// fill starting board with the default field
 	for (int i = 0; i < BOARD_SIZE; i++)
 	{
@@ -1020,6 +1033,8 @@ void Player::init_board(const std::string &filename) const
 				((i + j) % 2) == 0 ? initial_board[i][j] = Player::piece::e : initial_board[i][j] = Player::piece::o;
 			else
 				initial_board[i][j] = Player::piece::e;
+            // updating the initial board
+            temp->next->board[i][j] = initial_board[i][j];
 		}
 	}
 
@@ -1208,15 +1223,13 @@ bool Player::valid_move() const
 {
 
     // controllo che esista la prima board
-    if (this->pimpl->board == nullptr )
+    if (this->pimpl == nullptr )
         throw player_exception{player_exception::index_out_of_bounds,
                                "ERROR: the the move can't be verified because the player contains less than two boards inside its memory"};
     // controllo che esista la seconda board
-    else {
-        if(this->pimpl->next == nullptr)
-            throw player_exception{player_exception::index_out_of_bounds,
-                                   "ERROR: the move can't be verified because the player contains less than two boards"};
-    }
+    if(this->pimpl->next == nullptr)
+        throw player_exception{player_exception::index_out_of_bounds,
+                               "ERROR: the move can't be verified because the player contains less than two boards"};
     Impl* temp = this->pimpl;
     // flag to check if the latest two boards are equal
     bool exit_check = true;
@@ -1227,6 +1240,9 @@ bool Player::valid_move() const
         temp = temp->next;
 
     auto latest_board = temp->next->board;
+
+    print_board(latest_board);
+    print_board(temp->board);
 
 
     // looping the board
