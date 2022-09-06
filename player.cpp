@@ -853,7 +853,6 @@ Player &Player::operator=(const Player &p)
  */
 void Player::load_board(const std::string &filename)
 {
-
 	Impl *temp = this->pimpl;
 	int last_index = this->pimpl->index;
 
@@ -957,7 +956,6 @@ void Player::load_board(const std::string &filename)
  */
 void Player::store_board(const std::string &filename, int history_offset) const
 {
-
 	Impl *temp = this->pimpl;
 	int memory_size = 0;
 
