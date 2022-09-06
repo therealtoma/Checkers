@@ -1,4 +1,4 @@
-//#include "player.hpp"
+#include "player.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -15,7 +15,7 @@ constexpr int MAX_ROUNDS = 1000;
 int main(int argc, char **argv){
 	
 	//create new verifier
-	Player v();
+	Player v(1);
 	
 	cout << "Running verifier" << endl;
 	
@@ -23,45 +23,50 @@ int main(int argc, char **argv){
 	v.init_board(board_name);
 	
 	int round = 2;
-	
-	while(true){
+	try {
+        while (true) {
 
-		board_name =  "board_" + std::to_string(round) + ".txt";
-		ifstream infile(board_name);
-		
-		if(infile.good()){
-		
-			if(round >= MAX_ROUNDS){
-					cout << "Game over. Too many rounds. Both players lose." << endl;
-					exit(0);
-			}
-		
-			int player_nr = round%2 == 0 ? 1 : 2;//player that created board_name
-	
-			cout << "Verifying board " << board_name << " created by Player " << player_nr << endl;
-		
-			infile.close();
-			std::this_thread::sleep_for (std::chrono::milliseconds(100));
-			
-			v.load_board(board_name);
-			
-			if(v.valid_move()){
-			
-				if(p.wins(player_nr)){
-					cout << "Game over. Player " << player_nr << " wins." << endl;
-					exit(0);
-				}
-						
-				round++;
-				
-			}else{
-				//invalid move. End game and declare that player player_nr lost due to invalid move.
-				cout << "Game over: invalid move by Player " << player_nr << ". Player " << (player_nr==1?2:1) << " wins." << endl;
-				exit(0);
-			}
-				
-		}
-		
-	}
+            board_name = "board_" + std::to_string(round) + ".txt";
+            ifstream infile(board_name);
+
+            if (infile.good()) {
+
+                if (round >= MAX_ROUNDS) {
+                    cout << "Game over. Too many rounds. Both players lose." << endl;
+                    exit(0);
+                }
+
+                int player_nr = round % 2 == 0 ? 1 : 2;//player that created board_name
+
+                cout << "Verifying board " << board_name << " created by Player " << player_nr << endl;
+
+                infile.close();
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+                v.load_board(board_name);
+
+                if (v.valid_move()) {
+
+                    if (v.wins(player_nr)) {
+                        cout << "Game over. Player " << player_nr << " wins." << endl;
+                        exit(0);
+                    }
+
+                    round++;
+
+                } else {
+                    //invalid move. End game and declare that player player_nr lost due to invalid move.
+                    cout << "Game over: invalid move by Player " << player_nr << ". Player " << (player_nr == 1 ? 2 : 1)
+                         << " wins." << endl;
+                    exit(0);
+                }
+
+            }
+
+        }
+    }
+    catch (player_exception &e) {
+        std::cout << e.msg << std::endl;
+    }
 	
 }

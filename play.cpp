@@ -1,4 +1,4 @@
-/*
+
 #include "player.hpp"
 #include <iostream>
 #include <fstream>
@@ -41,7 +41,6 @@ int main(int argc, char **argv){
 
             }
             if (p.wins()) {
-                std::cout << "recurrence: " << p.recurrence() << std::endl;
                 std::cout << "Player 1 won the game!" << std::endl;
                 return 0;
             }
@@ -51,7 +50,8 @@ int main(int argc, char **argv){
         std::cout << e.msg << std::endl;
     }
 }
-*/
+
+/*
 // codice di andre
 #include "player.hpp"
 #include <iostream>
@@ -111,3 +111,4 @@ int main(int argc, char **argv) {
 
     }
 }
+*/

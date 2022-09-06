@@ -1241,9 +1241,6 @@ bool Player::valid_move() const
 
     auto latest_board = temp->next->board;
 
-    print_board(latest_board);
-    print_board(temp->board);
-
 
     // looping the board
     for(int i = 0; i < BOARD_SIZE && exit_check; i++) {
