@@ -2,7 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <stdlib.h>
+#include <cassert>
+
+using namespace std;
 
 struct player_exception{
 	enum err_type {index_out_of_bounds,missing_file,invalid_board};
@@ -43,16 +47,16 @@ public:
 	 * an array of boards is good only if you re-allocate using a doubling technique. 
 	 * Better to use a list of boards.  
 	 */
-	void load_board(const std::string& filename);
+	void load_board(const string& filename);
 
 	/*
 	 * save the history_offset-th board (counting from most to least recent) to file
 	 * (if history_offset = 0, then the board is the most recent one)
 	 */
-	void store_board(const std::string& filename, int history_offset = 0) const;
+	void store_board(const string& filename, int history_offset = 0) const;
 	
-	// create the initial board, store it inside the most recent player memory cell and save it in the file
-	void init_board(const std::string& filename) const;
+	//create and store an initial board to file
+	void init_board(const string& filename) const;
 	
 	/* 
 	 * make a move starting from the most recent board in the history.
@@ -88,6 +92,8 @@ public:
 	int recurrence() const;
 	
 private:
-    struct Impl;
-    Impl* pimpl;
+
+	struct Impl;
+	Impl* pimpl;
+		
 };

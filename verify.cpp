@@ -1,4 +1,4 @@
-//#include "player.hpp"
+#include "player.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -15,12 +15,13 @@ constexpr int MAX_ROUNDS = 1000;
 int main(int argc, char **argv){
 	
 	//create new verifier
-	Player v();
+	Player v(1);
 	
 	cout << "Running verifier" << endl;
 	
 	string board_name =  "board_1.txt";		
 	v.init_board(board_name);
+	v.load_board(board_name);
 	
 	int round = 2;
 	
@@ -47,7 +48,7 @@ int main(int argc, char **argv){
 			
 			if(v.valid_move()){
 			
-				if(p.wins(player_nr)){
+				if(v.wins(player_nr)){
 					cout << "Game over. Player " << player_nr << " wins." << endl;
 					exit(0);
 				}
