@@ -1345,7 +1345,7 @@ bool Player::loses() const
  */
 int Player::recurrence() const {
     // if the board is empty an exception is thrown
-    if (this->pimpl == nullptr)
+    if (this->pimpl->board == nullptr)
         throw player_exception{player_exception::index_out_of_bounds, "The player contains no boards"};
 
     // saving the first and the last board
@@ -1354,7 +1354,7 @@ int Player::recurrence() const {
 
     // setting variables
     bool exit = false;
-    int count = 0;
+    int count = 1;
 
     // going to the end
     while (latest_board->next)
